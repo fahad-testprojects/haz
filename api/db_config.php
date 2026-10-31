@@ -1,9 +1,9 @@
 <?php
 // === DATABASE CONFIGURATION ===
-$DB_HOST = "localhost";
-$DB_USER = "forbitto_haz_user";  // Change this
-$DB_PASS = "FORBIThaz66";  // Change this
-$DB_NAME = "forbitto_haz_db";  // Change this
+$DB_HOST = "91.204.209.59";
+$DB_USER = "aroshy_haz_user";  // Change this
+$DB_PASS = "FORBIT@haz66";  // Change this
+$DB_NAME = "aroshy_haz_db";  // Change this
 
 mysqli_report(MYSQLI_REPORT_OFF);
 
