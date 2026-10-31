@@ -149,18 +149,24 @@ if ($annRes && ($annRow = $annRes->fetch_assoc())) {
         :root { --p: #4361ee; --bg: #f8f9fa; --card: #ffffff; --text: #1f2937; }
         * { box-sizing: border-box; }
         body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding: 20px; }
-        .nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 10px; }
+        .nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
         .card { background: var(--card); border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px; }
-        input, select { padding: 10px; border: 1px solid #ddd; border-radius: 10px; }
+        input, select { padding: 10px 12px; border: 1px solid #ddd; border-radius: 10px; outline: none; }
+        input:focus { border-color: var(--p); }
         .btn { background: var(--p); color: white; border: none; padding: 10px 15px; border-radius: 10px; cursor: pointer; font-weight: bold; }
         .btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .btn-red { background: #ef4444; }
+        .btn-soft { background: #eef2ff; color: var(--p); }
         .bolt { background: #eef2ff; color: var(--p); border: none; border-radius: 8px; cursor: pointer; padding: 10px; }
         table { width: 100%; text-align: center; border-collapse: collapse; margin: 10px 0; font-size: 0.9rem; }
         th, td { padding: 8px; border-bottom: 1px solid #eee; }
         .stat { font-size: 2rem; font-weight: 800; color: var(--p); }
         .p-card { border-left: 5px solid var(--p); }
+        .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+        .tabs { display: flex; gap: 8px; }
+        .tab-btn { padding: 9px 16px; border-radius: 12px; border: 1px solid #e5e7eb; background: #fff; color: #4b5563; font-weight: 700; cursor: pointer; }
+        .tab-btn.active { background: var(--p); color: #fff; border-color: var(--p); }
         .toast { position: fixed; bottom: 20px; right: 20px; background: #1f2937; color: #fff; padding: 10px 16px; border-radius: 12px; font-size: 0.85rem; font-weight: bold; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; z-index: 9999; }
         .toast.show { opacity: 1; }
     </style>
@@ -184,6 +190,18 @@ if ($annRes && ($annRow = $annRes->fetch_assoc())) {
         </div>
     </div>
 
+    <!-- Tabs, Search & Stale Cleanup Toolbar -->
+    <div class="toolbar">
+        <div class="tabs">
+            <button type="button" class="tab-btn active" id="tab-running" onclick="switchTab('running')">🟢 Active Matches</button>
+            <button type="button" class="tab-btn" id="tab-finished" onclick="switchTab('finished')">🏁 Finished History</button>
+        </div>
+        <div style="display:flex; gap:8px; flex:1; max-width:440px; justify-content:flex-end; flex-wrap:wrap;">
+            <input type="text" id="admin-search" oninput="onSearchChange()" placeholder="🔍 Search player or Match ID..." style="flex:1; min-width:180px; background:#fff;">
+
+        </div>
+    </div>
+
     <div id="live-matches" class="grid">
         <p>Loading active matches...</p>
     </div>
@@ -193,6 +211,19 @@ if ($annRes && ($annRow = $annRes->fetch_assoc())) {
     <script>
         let isLoadingMatches = false;
         let toastTimer = null;
+        let currentTab = 'running';
+        let searchTimer = null;
+        let reloadPending = false;
+
+        const bnD = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
+        function normAdminNum(el) {
+            let v = String(el.value || '').split('').map(c => {
+                const idx = bnD.indexOf(c);
+                return idx > -1 ? String(idx) : c;
+            }).join('');
+            v = v.replace(/[^0-9-]/g, '').replace(/(?!^)-/g, '');
+            if (v !== el.value) el.value = v;
+        }
 
         function showToast(msg) {
             const t = document.getElementById('admin-toast');
@@ -200,6 +231,19 @@ if ($annRes && ($annRow = $annRes->fetch_assoc())) {
             t.classList.add('show');
             clearTimeout(toastTimer);
             toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            document.getElementById('tab-running').classList.toggle('active', tab === 'running');
+            document.getElementById('tab-finished').classList.toggle('active', tab === 'finished');
+            document.getElementById('live-matches').innerHTML = '<p>Loading matches...</p>';
+            loadMatches(true);
+        }
+
+        function onSearchChange() {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(() => loadMatches(true), 220);
         }
 
         function sendAnn() {
@@ -217,14 +261,14 @@ if ($annRes && ($annRow = $annRes->fetch_assoc())) {
         }
 
         function deleteMatch(mid) {
-            if (!confirm("Delete this match? Players will be disconnected.")) return;
+            if (!confirm("Delete this match permanently?")) return;
             fetch('index.php', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/x-www-form-urlencoded'},
                 body: `action=delete_match&mid=${encodeURIComponent(mid)}`
             }).then(() => {
-                showToast("🗑️ Match terminated");
-                loadMatches();
+                showToast("🗑️ Match removed");
+                loadMatches(true);
             });
         }
 
@@ -292,11 +336,15 @@ if ($annRes && ($annRow = $annRes->fetch_assoc())) {
             });
         }
 
-        function loadMatches() {
-            if (isLoadingMatches) return;
+        function loadMatches(forceReplace = false) {
+            if (isLoadingMatches) { reloadPending = true; return; }
             isLoadingMatches = true;
+            const requestedTab = currentTab;
 
-            fetch('live_data.php', { credentials: 'same-origin', cache: 'no-store' })
+            const q = (document.getElementById('admin-search').value || '').trim();
+            const url = `live_data.php?tab=${encodeURIComponent(currentTab)}&q=${encodeURIComponent(q)}`;
+
+            fetch(url, { credentials: 'same-origin', cache: 'no-store' })
                 .then(res => {
                     if (res.status === 403) {
                         window.location.reload();
@@ -305,16 +353,18 @@ if ($annRes && ($annRow = $annRes->fetch_assoc())) {
                     return res.text();
                 })
                 .then(html => {
+                    if (requestedTab !== currentTab || q !== (document.getElementById('admin-search').value || '').trim()) { reloadPending = true; return; }
                     const container = document.getElementById('live-matches');
                     const doc = new DOMParser().parseFromString(html, 'text/html');
                     const newCards = Array.from(doc.querySelectorAll('.match-card'));
 
-                    if (newCards.length === 0) {
-                        container.innerHTML = html;
-                        return;
+                    if (newCards.length === 0 || forceReplace) {
+                        if (newCards.length === 0) {
+                            container.innerHTML = html;
+                            return;
+                        }
                     }
 
-                    // Remove non-card placeholders ("Loading..." or "No Active Matches")
                     Array.from(container.children).forEach(child => {
                         if (!child.classList.contains('match-card')) {
                             child.remove();
@@ -323,14 +373,12 @@ if ($annRes && ($annRow = $annRes->fetch_assoc())) {
 
                     const incomingIds = new Set(newCards.map(c => c.id));
 
-                    // Remove cards for matches that ended or were deleted
                     Array.from(container.querySelectorAll('.match-card')).forEach(existing => {
                         if (!incomingIds.has(existing.id)) {
                             existing.remove();
                         }
                     });
 
-                    // Patch existing cards IN-PLACE so open <details> & focused <input> are NEVER disturbed!
                     newCards.forEach((newCard, idx) => {
                         const existing = document.getElementById(newCard.id);
                         if (!existing) {
@@ -368,12 +416,12 @@ if ($annRes && ($annRow = $annRes->fetch_assoc())) {
                 .catch(() => {})
                 .finally(() => {
                     isLoadingMatches = false;
+                    if (reloadPending) { reloadPending = false; loadMatches(true); }
                 });
         }
 
-        // Auto Refresh every 5s without resetting inputs or losing focus
-        setInterval(loadMatches, 5000);
-        loadMatches();
+        setInterval(() => loadMatches(false), 5000);
+        loadMatches(false);
     </script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'forhaz-v8.1';
+const CACHE_NAME = 'forhaz-v8.2';
 const assets = [
   './',
   './index.html',
