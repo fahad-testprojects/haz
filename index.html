@@ -102,6 +102,13 @@
         @keyframes zoomIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
         .fab { position: fixed; bottom: 100px; right: 20px; width: 60px; height: 60px; border-radius: 30px; background: var(--primary); color: white; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px var(--primary-light); z-index: 999; }
+        #magic-orb {position:fixed; right:12px; top:40%; z-index:2100; display:flex; flex-direction:column; align-items:flex-end; gap:8px;}
+        #orb-handle {width:52px;height:52px;border:0;border-radius:50%;background:var(--primary);color:white;font-size:1.4rem;box-shadow:0 5px 20px #0004;touch-action:none;cursor:grab}
+        #magic-actions:not([hidden]) {display:grid;gap:6px;animation:zoomIn .2s ease-out} #magic-actions button {border:0;border-radius:14px;padding:10px 14px;background:var(--card-bg);color:var(--text);box-shadow:0 3px 14px #0003;font-weight:700}
+        .modal-content {max-height:90vh;overflow:auto} .history-table {width:100%;border-collapse:collapse} .history-table td,.history-table th {padding:6px;border-bottom:1px solid var(--border)}
+        .score-progress {height:7px;border-radius:8px;background:var(--border);overflow:hidden;margin:6px 0} .score-progress span {display:block;height:100%;background:var(--primary);transition:width .25s}
+        .celebration {position:fixed;top:-30px;z-index:4000;pointer-events:none;animation:confettiFall 2.4s ease-in forwards} @keyframes confettiFall {to {transform:translateY(110vh) rotate(540deg);opacity:0}}
+        @media (prefers-reduced-motion:reduce) {*,*::before,*::after {animation-duration:.01ms!important;transition-duration:.01ms!important}}
     </style>
 </head>
 <body>
@@ -111,6 +118,11 @@
     </div>
 
     <div id="speech-toast" class="speech-toast"></div>
+    <div id="magic-orb" aria-label="Quick tools" role="group"><div id="magic-actions" hidden>
+        <button onclick="playerReport()">👤 Player report</button><button onclick="scoreCalculator()">🧮 Score calculator</button>
+        <button onclick="dealerToss()">🎲 Dealer toss</button><button onclick="shareInvite()">📱 Share viewer link</button>
+        <button onclick="toggleAwake()">🔆 Screen awake</button></div>
+        <button id="orb-handle" aria-label="Open quick tools" aria-expanded="false">✨</button></div>
 
     <!-- Dashboard -->
     <div id="view-dashboard" class="view container active">
@@ -184,7 +196,7 @@
                     <span id="sync-time" style="font-size: 0.6rem; color: var(--text-dim);">Never synced</span>
                 </div>
                 <div id="score-inputs"></div>
-                <div id="game-warn" style="font-size: 0.75rem; text-align: center; margin: 10px 0; font-weight: 700;"></div>
+                <div class="score-progress" aria-hidden="true"><span id="score-progress-fill"></span></div><div id="game-warn" style="font-size: 0.75rem; text-align: center; margin: 10px 0; font-weight: 700;"></div>
                 <div style="display: flex; gap: 10px;">
                     <button class="btn-outline" style="flex:1" onclick="confirmUndo()" data-i18n="undo">Undo</button>
                     <button class="btn-primary" style="flex:2" onclick="strictSave()" data-i18n="saveRound">Save Round</button>
@@ -420,6 +432,7 @@
             state.history.push({
                 matchId: g.matchId,
                 winner: winner.name,
+                matchName: g.matchName, target: g.target, roundSum: g.roundSum,
                 total: winner.total,
                 date: Date.now(),
                 players: g.players.map(p => ({ name: p.name, total: p.total, history: p.history }))
@@ -717,6 +730,7 @@
                 if (el) el.focus();
             }
             sumCheck();
+            updateExtraBoard(g, sorted);
 
             let table = `<thead><tr><th>R</th>${g.players.map(p => `<th>${esc(Array.from(p.name).slice(0, 4).join(''))}</th>`).join('')}</tr></thead><tbody>`;
             for (let i = g.players[0].history.length - 1; i >= 0; i--) {
@@ -765,6 +779,7 @@
             syncToServer(true);
 
             if (winner) {
+                celebrate();
                 haptic('win');
                 announceScores();
                 openModal('🏆', esc(winner.name) + ' Won!', winner.total + ' Points!', [{
@@ -1325,8 +1340,8 @@
                     <div style="font-weight:700;">${esc(n)}</div>
                 </div>`).join('') || 'No stats';
 
-            document.getElementById('history-list').innerHTML = state.history.slice().reverse().map(h => `
-                <div class="card" style="display:flex; justify-content:space-between;">
+            document.getElementById('history-list').innerHTML = state.history.slice().reverse().map((h, i) => `
+                <div class="card" role="button" tabindex="0" onclick="openHistory(${i})" onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openHistory(${i}); }" style="display:flex; justify-content:space-between; cursor:pointer;">
                     <div>
                         <div style="font-weight:800; color:var(--primary);">🏆 ${esc(h.winner)}</div>
                         <div style="font-size:0.65rem;">${new Date(h.date).toLocaleDateString()}</div>
@@ -1423,12 +1438,105 @@
             const w = document.getElementById('game-warn');
             if (w) {
                 w.innerText = `Total: ${s} / ${state.active.roundSum}`;
+                document.getElementById('score-progress-fill').style.width = Math.max(0, Math.min(100, s / (state.active.roundSum || 1) * 100)) + '%';
                 w.style.color = s === state.active.roundSum ? 'var(--success)' : 'var(--danger)';
             }
         }
 
+        // Archive reports are read-only and never replace the active match.
+        function openHistory(index) {
+            const h = state.history[state.history.length - 1 - index];
+            if (!h || !Array.isArray(h.players)) return;
+            const rounds = Math.max(0, ...h.players.map(p => Array.isArray(p.history) ? p.history.length : 0));
+            let table = '<div style="overflow:auto"><table class="history-table"><tr><th>Round</th>' + h.players.map(p => `<th>${esc(p.name)}</th>`).join('') + '</tr>';
+            for (let r = 0; r < rounds; r++) table += `<tr><td>${r + 1}</td>` + h.players.map(p => `<td>${esc((p.history || [])[r] ?? '—')}</td>`).join('') + '</tr>';
+            table += '</table></div>';
+            const stats = h.players.map(p => {
+                const scores = Array.isArray(p.history) ? p.history : [];
+                return `<div><b>${esc(p.name)}</b>: ${esc(p.total)} · Best ${scores.length ? Math.max(...scores) : '—'} · 🥚 ${scores.filter(n => Number(n) === 0).length}</div>`;
+            }).join('');
+            openModal('🏆', 'Match details', `<b>${esc(h.matchName || h.matchId || 'Match')}</b><br>Winner: ${esc(h.winner)}<br>${esc(new Date(h.date).toLocaleString())}<br><br>${stats}<br>${rounds ? table : 'Round history unavailable for this match.'}`, [
+                {text:'🔄 Rematch', cb:() => prepareRematch(h)}, {text:'Close'}
+            ]);
+        }
+        function prepareRematch(h) {
+            if (state.active && state.active.status !== 'finished' && !confirm('An active match exists. Starting another match will replace it on this device. Continue?')) return;
+            document.getElementById('setup-count').value = String(Math.min(4, Math.max(2, h.players.length)));
+            togglePlayerInputs();
+            h.players.slice(0,4).forEach((p,i) => { const el = document.getElementById(`p-name-${i}`); if (el) el.value = p.name; });
+            if (h.target) document.getElementById('setup-target').value = h.target;
+            if (h.roundSum) document.getElementById('setup-round').value = h.roundSum;
+            showView('setup');
+        }
+        function playerReport() {
+            const names = [...new Set(state.history.flatMap(h => (h.players || []).map(p => p.name)).concat(state.active ? state.active.players.map(p => p.name) : []))];
+            if (!names.length) { openModal('👤','Player report','No local match data yet.',[{text:'Close'}]); return; }
+            const options = names.map((n,i) => `<option value="${i}">${esc(n)}</option>`).join('');
+            openModal('👤','Player report', `<label for="report-player">Choose player</label><select id="report-player">${options}</select><div id="report-details" style="margin-top:12px"></div>`, [{text:'Close'}]);
+            const select = document.getElementById('report-player');
+            function update() {
+                const name = names[Number(select.value)];
+                const matches = state.history.filter(h => (h.players || []).some(p => p.name === name));
+                const players = matches.flatMap(h => h.players.filter(p => p.name === name));
+                const scores = players.flatMap(p => Array.isArray(p.history) ? p.history : []);
+                const wins = matches.filter(h => h.winner === name).length;
+                document.getElementById('report-details').innerHTML = `Local completed matches: ${matches.length}<br>Wins: ${wins} (${matches.length ? Math.round(wins / matches.length * 100) : 0}%)<br>Round average: ${scores.length ? (scores.reduce((a,b) => a + Number(b || 0), 0) / scores.length).toFixed(1) : '—'}<br>Best round: ${scores.length ? Math.max(...scores) : '—'} · 🥚 ${scores.filter(s => Number(s) === 0).length}`;
+            }
+            select.onchange = update; update();
+        }
+        function scoreCalculator() {
+            const g = state.active;
+            if (!g) { openModal('🧮','Score calculator','Start or join a match first.',[{text:'Close'}]); return; }
+            openModal('🧮','Points to target', g.players.map(p => `<div>${esc(p.name)}: <b>${Math.max(0, g.target - p.total)}</b> remaining</div>`).join(''), [{text:'Close'}]);
+        }
+        function dealerToss() {
+            const g = state.active;
+            if (!g || !g.players.length) { openModal('🎲','Dealer toss','Start or join a match first.',[{text:'Close'}]); return; }
+            const player = g.players[Math.floor(Math.random() * g.players.length)];
+            openModal('🃏','Dealer toss', `${esc(player.name)} deals first!`, [{text:'Close'}]);
+        }
+        async function shareInvite() {
+            const g = state.active;
+            if (!g) { openModal('📱','Invite','Start or join a match first.',[{text:'Close'}]); return; }
+            const url = new URL(location.href); url.search = ''; url.hash = ''; url.searchParams.set('join', g.matchId);
+            const text = `Join match ${g.matchId} as a viewer: ${url.href}`;
+            try { if (navigator.share) await navigator.share({title:'HazariVai match', text, url:url.href}); else if (navigator.clipboard) { await navigator.clipboard.writeText(text); openModal('📱','Copied',esc(text),[{text:'Close'}]); } else openModal('📱','Viewer link',esc(text),[{text:'Close'}]); }
+            catch(e) { if (e.name !== 'AbortError') openModal('📱','Viewer link',esc(text),[{text:'Close'}]); }
+        }
+        let wakeLock = null;
+        async function toggleAwake() {
+            if (wakeLock) { await wakeLock.release(); wakeLock = null; openModal('🔆','Screen awake','Screen lock disabled.',[{text:'Close'}]); return; }
+            try { if (!navigator.wakeLock) throw new Error(); wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', () => { wakeLock = null; }); openModal('🔆','Screen awake','Screen will stay awake while this page is visible. Repeat to turn off.',[{text:'Close'}]); }
+            catch(e) { openModal('🔆','Screen awake','Not available on this browser or while the page is hidden.',[{text:'Close'}]); }
+        }
+        function updateExtraBoard(g, sorted) {
+            const chips = document.querySelectorAll('#game-board .player-chip');
+            chips.forEach((chip,i) => {
+                const p = sorted[i];
+                if (i === 0 && p.total > 0) chip.querySelector('.player-name-small').insertAdjacentHTML('afterbegin','👑 ');
+                const remaining = g.target - p.total;
+                if (remaining > 0 && remaining <= g.roundSum) chip.insertAdjacentHTML('beforeend', `<div class="prob-badge">🚨 ${remaining} to win</div>`);
+                if (p.history.length && p.last === g.roundSum) chip.insertAdjacentHTML('beforeend','<div class="prob-badge">🔥 Full sweep!</div>');
+                if (p.history.length && p.last === 0) chip.insertAdjacentHTML('beforeend','<div class="prob-badge">🥚 Duck</div>');
+            });
+        }
+        function celebrate() {
+            if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            for (let i=0;i<24;i++) { const el=document.createElement('span'); el.className='celebration'; el.textContent=['♥','♠','♦','♣','✨'][i%5]; el.style.left=(Math.random()*100)+'vw'; el.style.animationDelay=(Math.random()*.5)+'s'; el.style.color=['#ef4444','#6366f1','#f59e0b'][i%3]; document.body.appendChild(el); setTimeout(()=>el.remove(),3200); }
+        }
+        function initOrb() {
+            const orb=document.getElementById('magic-orb'), handle=document.getElementById('orb-handle'), actions=document.getElementById('magic-actions');
+            let start=null, moved=false;
+            handle.addEventListener('pointerdown', e => { start={x:e.clientX,y:e.clientY,left:orb.getBoundingClientRect().left,top:orb.getBoundingClientRect().top}; moved=false; handle.setPointerCapture(e.pointerId); });
+            handle.addEventListener('pointermove', e => { if(!start) return; const dx=e.clientX-start.x,dy=e.clientY-start.y; if(Math.abs(dx)+Math.abs(dy)>8) moved=true; if(moved) { actions.hidden=true; handle.setAttribute('aria-expanded','false'); orb.style.left=Math.max(0,Math.min(innerWidth-52,start.left+dx))+'px'; orb.style.top=Math.max(0,Math.min(innerHeight-52,start.top+dy))+'px'; orb.style.right='auto'; } });
+            handle.addEventListener('pointerup', e => { if (!start) return; if(moved) { orb.style.left=(e.clientX < innerWidth/2 ? 8 : Math.max(8,innerWidth-60))+'px'; orb.style.alignItems=e.clientX < innerWidth/2 ? 'flex-start':'flex-end'; } else { actions.hidden=!actions.hidden; handle.setAttribute('aria-expanded', String(!actions.hidden)); } start=null; });
+        }
+
         togglePlayerInputs();
         load();
+        initOrb();
+        const inviteId = new URL(location.href).searchParams.get('join');
+        if (inviteId) document.getElementById('join-id').value = inviteId;
     </script>
 </body>
 </html>
