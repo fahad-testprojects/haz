@@ -1624,7 +1624,7 @@
             } catch(e) { openModal('📷','Viewer QR','QR could not be generated. Use Share viewer link instead.',[{text:'Close'}]); }
         }
         async function shareScorecard(h) {
-            const canvas = document.createElement('canvas'); canvas.width = 1000; canvas.height = 320 + h.players.length * 90;
+            const canvas = document.createElement('canvas'); canvas.width = 1000; canvas.height = 570 + h.players.length * 90;
             const c = canvas.getContext('2d'); c.fillStyle='#111c37'; c.fillRect(0,0,canvas.width,canvas.height);
             c.fillStyle='#fff'; c.font='bold 48px sans-serif'; c.fillText('HAZARIVAI • SCORECARD',45,75,910);
             c.fillStyle='#fbbf24'; c.font='bold 38px sans-serif'; c.fillText('Winner: '+h.winner,45,145,910);
@@ -1633,6 +1633,11 @@
                 const y=270+i*90; c.fillStyle='#26385c'; c.fillRect(40,y-45,920,68); c.fillStyle='#fff'; c.font='bold 30px sans-serif';
                 c.textAlign='left'; c.fillText((i+1)+'. '+p.name,60,y,700); c.textAlign='right'; c.fillText(String(p.total),930,y); c.textAlign='left';
             });
+            const chartY=300+h.players.length*90, colors=['#60a5fa','#f472b6','#34d399','#fbbf24'];
+            const series=h.players.map(p=>{let total=0; return [0,...(p.history||[]).map(v=>total+=Number(v)||0)];});
+            const rounds=Math.max(1,...series.map(a=>a.length-1)), max=Math.max(1,...series.flat());
+            c.fillStyle='#cbd5e1'; c.font='24px sans-serif'; c.fillText('Round progress',45,chartY-20);
+            series.forEach((points,i)=>{c.strokeStyle=colors[i%colors.length];c.lineWidth=4;c.beginPath();points.forEach((v,j)=>{const x=50+j*890/rounds,y=chartY+180-v*160/max;if(j===0)c.moveTo(x,y);else c.lineTo(x,y);});c.stroke();});
             canvas.toBlob(async blob => {
                 if (!blob) { openModal('📸','Scorecard','Unable to create image.',[{text:'Close'}]); return; }
                 const file = new File([blob], 'hazarivai-scorecard.png', {type:'image/png'});
