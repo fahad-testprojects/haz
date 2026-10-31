@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HazariVai</title>
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#f8f9fa" id="meta-theme-color">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg: #f8f9fa; --card-bg: #ffffff; --primary: #4361ee; --primary-light: #eef2ff;
+            --text: #1f2937; --text-dim: #6b7280; --border: #edf2f7; --danger: #ef4444;
+            --success: #10b981; --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --p1: #4361ee; --p2: #f72585; --p3: #f8961e; --p4: #7209b7;
+        }
+        [data-theme="dark"] {
+            --bg: #121212; --card-bg: #1e1e1e; --primary: #60a5fa; --primary-light: rgba(96, 165, 250, 0.1);
+            --text: #e0e0e0; --text-dim: #9ca3af; --border: #333333;
+        }
+        [data-theme="forgreen"] {
+            --bg: #f0fdf4; --card-bg: #ffffff; --primary: #059669; --primary-light: #d1fae5;
+            --text: #064e3b; --text-dim: #047857; --border: #a7f3d0;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Inter', 'Hind Siliguri', sans-serif; transition: background 0.2s ease; }
+        body { background: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; min-height: 100vh; overflow-x: hidden; }
+        .view { display: none; animation: slideUp 0.3s ease-out; }
+        .view.active { display: block; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        .container { max-width: 500px; margin: 0 auto; padding: 20px; }
+        .card { background: var(--card-bg); border-radius: 24px; padding: 22px; box-shadow: var(--shadow); margin-bottom: 18px; border: 1px solid var(--border); position: relative; }
+        h1, h2, h3 { margin: 0; font-weight: 800; }
+        
+        button { border: none; border-radius: 16px; padding: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-full { width: 100%; }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 12px var(--primary-light); }
+        .btn-outline { background: var(--primary-light); color: var(--primary); }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-mini { padding: 8px 12px; border-radius: 12px; font-size: 0.8rem; }
+
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-dim); margin-bottom: 6px; }
+        input, select, textarea { width: 100%; border: 2px solid var(--border); border-radius: 16px; padding: 14px; font-size: 1rem; outline: none; background: var(--bg); color: var(--text); }
+        input:focus { border-color: var(--primary); background: var(--card-bg); }
+
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card-bg); display: flex; justify-content: space-around; padding: 12px 0; box-shadow: 0 -4px 15px rgba(0,0,0,0.04); z-index: 1000; border-top: 1px solid var(--border); }
+        .nav-item { display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; color: var(--text-dim); cursor: pointer; gap: 4px; opacity: 0.7; }
+        .nav-item.active { color: var(--primary); font-weight: 800; opacity: 1; }
+        .nav-icon { font-size: 1.5rem; }
+
+        .leaderboard { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+        .player-chip { padding: 20px; border-radius: 28px; background: var(--card-bg); border: 1px solid var(--border); box-shadow: var(--shadow); position: relative; overflow: hidden; }
+        .player-chip::before { content: ''; position: absolute; left: 0; top: 0; width: 6px; height: 100%; }
+        .p0::before { background: var(--p1); } .p1::before { background: var(--p2); }
+        .p2::before { background: var(--p3); } .p3::before { background: var(--p4); }
+        
+        .score-val { font-size: 2.4rem; font-weight: 900; color: var(--text); line-height: 1; margin: 10px 0; }
+        .player-name-small { font-size: 0.85rem; font-weight: 700; color: var(--text-dim); display: flex; align-items: center; }
+        .avatar { width: 24px; height: 24px; border-radius: 50%; margin-right: 8px; border: 1px solid var(--border); }
+        .prob-badge { font-size: 0.7rem; font-weight: 800; background: var(--primary-light); color: var(--primary); padding: 4px 10px; border-radius: 20px; }
+
+        .score-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .score-row .input-group { margin-bottom: 0; flex: 1; }
+        .bolt-btn { background: var(--primary-light); color: var(--primary); width: 48px; height: 48px; border-radius: 14px; font-size: 1.3rem; flex-shrink: 0; }
+
+        .join-box { background: var(--card-bg); padding: 20px; border-radius: 24px; margin-top: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+        .badge-mode { font-size: 0.6rem; padding: 2px 6px; border-radius: 6px; font-weight: 800; text-transform: uppercase; margin-left: 8px; }
+        .mode-edit { background: #dcfce7; color: #15803d; }
+        .mode-view { background: #fee2e2; color: #b91c1c; }
+        #match-chart-container { background: var(--card-bg); padding: 15px; border-radius: 24px; margin-top: 20px; display: none; border: 1px solid var(--border); }
+
+        /* Mascot Styles */
+        .mascot-container { position: fixed; bottom: 85px; left: 15px; z-index: 2000; display: none; align-items: center; pointer-events: none; flex-direction: column; touch-action: none; }
+        .mascot-wrapper { position: relative; width: 85px; height: 115px; pointer-events: auto; cursor: grab; animation: mascotFloat 4s infinite ease-in-out; }
+        .ace-body { width: 100%; height: 100%; background: #fff; border: 2px solid #222; border-radius: 12px; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .robot-face { width: 60px; height: 42px; background: #1a1a1a; border-radius: 14px; position: relative; border: 2px solid #333; }
+        .mouth-line { width: 28px; height: 4px; background: #00ff00; position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); border-radius: 4px; box-shadow: 0 0 6px #00ff00; transition: 0.3s; }
+        .is-speaking .mouth-line { animation: talkSync 0.15s infinite; }
+        @keyframes talkSync { 0%, 100% { height: 4px; } 50% { height: 12px; } }
+        .speech-bubble { background: white; border: 2px solid var(--primary); border-radius: 20px; padding: 12px 18px; font-size: 0.85rem; font-weight: 700; position: absolute; bottom: 140px; left: 50%; transform: translateX(-50%); min-width: 150px; display: none; text-align: center; box-shadow: var(--shadow); z-index: 2001; pointer-events: none; }
+        @keyframes mascotFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); align-items: center; justify-content: center; z-index: 3000; padding: 24px; }
+        .modal-content { background: var(--card-bg); padding: 32px; border-radius: 32px; width: 100%; max-width: 400px; text-align: center; animation: zoomIn 0.2s ease-out; }
+        @keyframes zoomIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .fab { position: fixed; bottom: 100px; right: 20px; width: 60px; height: 60px; border-radius: 30px; background: var(--primary); color: white; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px var(--primary-light); z-index: 999; }
+    </style>
+</head>
+<body>
+
+    <div id="announcement-bar" style="background:var(--p1); color:white; padding:10px; border-radius:0 0 15px 15px; display:none; position: sticky; top: 0; z-index: 2000;">
+        <marquee id="ann-text" style="font-weight:bold;"></marquee>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="view-dashboard" class="view container active">
+        <h1 style="margin-bottom: 24px; font-size: 1.8rem;">HazariVai</h1>
+        
+        <div class="join-box">
+            <div style="font-weight:800; font-size:0.9rem; margin-bottom:12px;" data-i18n="joinMatch">Join Match</div>
+            <div style="display:grid; gap:10px;">
+                <input type="text" id="join-id" placeholder="Match ID (e.g. HZ-1234)">
+                <div style="display:flex; gap:8px;">
+                    <input type="number" id="join-pin" placeholder="PIN" style="flex:1" inputmode="numeric">
+                    <button class="btn-primary" onclick="joinMatch()">Join</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+            <h3 style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 15px;" data-i18n="allTimeWins">Win Stats</h3>
+            <div id="stats-list" style="display: flex; gap: 12px; overflow-x: auto; padding-bottom: 5px;"></div>
+        </div>
+
+        <h2 style="font-size: 1.1rem; margin-top: 20px; margin-bottom: 15px;" data-i18n="pastHistory">Match History</h2>
+        <div id="history-list"></div>
+        <button class="fab" onclick="showView('setup')">➕</button>
+    </div>
+
+    <!-- Setup View -->
+    <div id="view-setup" class="view container">
+        <h1 data-i18n="newGameSetup">Match Setup</h1>
+        <div class="card" style="margin-top: 15px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                <div class="input-group"><label data-i18n="targetScore">Win Target</label><input type="number" id="setup-target" value="1000"></div>
+                <div class="input-group"><label data-i18n="roundTotal">Round Sum</label><input type="number" id="setup-round" value="360"></div>
+            </div>
+            <div class="input-group"><label data-i18n="numPlayers">Players</label><select id="setup-count" onchange="togglePlayerInputs()"><option value="2">2 Players</option><option value="3">3 Players</option><option value="4" selected>4 Players</option></select></div>
+            <div id="player-inputs" style="display: grid; gap: 10px;"></div>
+            <button class="btn-primary btn-full" onclick="startGame()" style="margin-top: 25px;" data-i18n="launchGame">Launch Match</button>
+            <button class="btn-outline btn-full" onclick="showView('dashboard')" style="margin-top: 10px;" data-i18n="cancel">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Game View -->
+    <div id="view-game" class="view container">
+        <div id="sync-debug-log" style="background:#fee2e2; color:#991b1b; padding:10px; border-radius:10px; font-size:0.6rem; margin-bottom:10px; display:none;"></div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <h1 data-i18n="activeMatch" style="font-size: 1.2rem;">In Play</h1>
+                    <div id="sync-indicator" style="width: 10px; height: 10px; border-radius: 50%; background: #ccc;"></div>
+                    <span id="access-badge" class="badge-mode"></span>
+                </div>
+                <div id="match-info-display" style="font-size: 0.65rem; color: var(--text-dim); font-weight: 700; margin-top: 2px;"></div>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button class="bolt-btn" style="width:36px; height:36px; border-radius:10px; font-size:1rem;" onclick="openEditModal()">⚙️</button>
+                <button class="bolt-btn" style="width:36px; height:36px; border-radius:10px; font-size:1rem;" onclick="announceScores()">🔊</button>
+                <button class="btn-danger btn-mini" onclick="confirmExit()" data-i18n="exit">Exit</button>
+            </div>
+        </div>
+
+        <div id="match-chart-container">
+            <canvas id="matchChart"></canvas>
+        </div>
+
+        <div class="leaderboard" id="game-board" style="margin-top: 15px;"></div>
+
+        <div id="editor-controls">
+            <div class="card" style="padding: 15px; margin-bottom: 15px; border: 2px solid var(--primary-light);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase;">Quick Input</h3>
+                    <span id="sync-time" style="font-size: 0.6rem; color: var(--text-dim);">Never synced</span>
+                </div>
+                <div id="score-inputs"></div>
+                <div id="game-warn" style="font-size: 0.75rem; text-align: center; margin: 10px 0; font-weight: 700;"></div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-outline" style="flex:1" onclick="confirmUndo()">Undo</button>
+                    <button class="btn-primary" style="flex:2" onclick="strictSave()">Save Round</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="padding: 15px;">
+            <div style="max-height: 200px; overflow-y: auto;">
+                <table id="round-log" style="width: 100%; font-size: 0.85rem; text-align: center; border-collapse: collapse;"></table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings -->
+    <div id="view-settings" class="view container">
+        <h1 data-i18n="settings">Preferences</h1>
+        <div class="card" style="margin-top: 20px;">
+            <h3 style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 15px; text-transform: uppercase;" data-i18n="visuals">Visuals</h3>
+            <div class="input-group"><label data-i18n="theme">Theme</label><select id="theme-sel" onchange="upTheme()"><option value="light">Light Mode</option><option value="dark">Dark Mode</option><option value="forgreen">For Green</option></select></div>
+            <div class="input-group" style="margin-top: 20px;"><label data-i18n="language">Language</label><select id="lang-sel" onchange="upLang()"><option value="en">English (US)</option><option value="bn">বাংলা (Bengali)</option></select></div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                <label style="font-weight: 700; color: var(--text-dim);" data-i18n="showChart">Show Live Chart</label>
+                <input type="checkbox" id="show-chart-toggle" onchange="upShowChart()" style="width: 20px; height: 20px;">
+            </div>
+            
+            <h3 style="font-size: 0.9rem; color: var(--text-dim); margin: 25px 0 15px 0; text-transform: uppercase;">Announcer Settings</h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <label style="font-weight: 700; color: var(--text-dim);" data-i18n="autoAnn">Auto Announce</label>
+                <input type="checkbox" id="auto-ann-toggle" onchange="upAutoAnn()" style="width: 20px; height: 20px;">
+            </div>
+            <div class="input-group"><label data-i18n="annStyle">Announcer Style</label><select id="speech-mode-sel" onchange="upSpeechMode()"><option value="standard">Standard</option><option value="fast">Fast / Minimal</option><option value="friendly">Friendly</option><option value="slang">Slang / Sarcastic</option><option value="custom">Custom Template</option></select></div>
+            <div class="input-group" id="custom-speech-area" style="display:none;"><label data-i18n="customTemp">Custom Template</label><textarea id="custom-speech-temp" oninput="upCustomTemp()" style="min-height:80px;"></textarea></div>
+
+            <h3 style="font-size: 0.9rem; color: var(--text-dim); margin: 25px 0 15px 0; text-transform: uppercase;">Interactive Character</h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <label style="font-weight: 700; color: var(--text-dim);" data-i18n="mascot">Enable Mascot</label>
+                <input type="checkbox" id="char-toggle" onchange="upCharToggle()" style="width: 20px; height: 20px;">
+            </div>
+            <div id="mascot-settings" style="display:none;">
+                <div class="input-group"><label data-i18n="mascotStyle">Mascot Personality</label><select id="char-mode-sel" onchange="upCharMode()"><option value="fun">Fun / Sarcastic</option><option value="friendly">Helpful / Kind</option></select></div>
+            </div>
+        </div>
+
+        <!-- Creative Credit Footer -->
+        <div style="text-align: center; margin: 30px 0; padding: 20px; background: linear-gradient(135deg, var(--primary-light), transparent); border-radius: 30px; border: 1px dashed var(--primary); position: relative; overflow: hidden;">
+            <div style="font-size: 0.65rem; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px; opacity: 0.7;">Crafted with ❤️ by</div>
+            <a href="https://forbit.top" target="_blank" style="text-decoration: none; font-size: 1.2rem; font-weight: 900; color: var(--primary);">forbit.top</a>
+        </div>
+
+        <div class="card"><button class="btn-danger btn-full" onclick="wipe()" data-i18n="wipeData">Wipe All Data</button></div>
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-item active" id="n-dash" onclick="showView('dashboard')"><span class="nav-icon">📊</span><span data-i18n="navDash">Dash</span></div>
+        <div class="nav-item" id="n-game" onclick="resume()"><span class="nav-icon">🃏</span><span data-i18n="navGame">Play</span></div>
+        <div class="nav-item" id="n-sett" onclick="showView('settings')"><span class="nav-icon">⚙️</span><span data-i18n="navSettings">Settings</span></div>
+    </nav>
+
+    <div id="global-modal" class="modal">
+        <div class="modal-content">
+            <span id="modal-icon" style="font-size: 3rem;">⚠️</span>
+            <h2 id="modal-title" style="margin: 10px 0;">Alert</h2>
+            <p id="modal-desc" style="color: var(--text-dim); margin-bottom: 25px;"></p>
+            <div id="modal-btns" style="display: grid; gap: 10px;"></div>
+        </div>
+    </div>
+
+    <!-- Robotic Ace Mascot -->
+    <div id="mascot-container" class="mascot-container">
+        <div id="mascot-bubble" class="speech-bubble"></div>
+        <div class="mascot-wrapper" id="mascot-body" onmousedown="startDrag(event)" ontouchstart="startDrag(event)">
+            <div class="ace-body" onclick="mascotClick()">
+                <div class="robot-face"><div class="mouth-line" id="mascot-mouth"></div></div>
+                <div style="font-size: 28px; margin-top: 5px;">♠</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const i18n = {
+            en: { 
+                allTimeWins:"Win Stats", pastHistory:"Match History", startNewGame:"Start New Game", newGameSetup:"Match Setup", 
+                targetScore:"Win Target", roundTotal:"Round Sum", numPlayers:"Players", launchGame:"Launch Match", 
+                activeMatch:"In Play", exit:"Exit", addScores:"Enter Round Results", undo:"Undo", saveRound:"Save Round", 
+                navDash:"Stats", navGame:"Play", navSettings:"Settings", wins: "Wins", 
+                p1Placeholder: "Player 1", p2Placeholder: "Player 2", p3Placeholder: "Player 3", p4Placeholder: "Player 4",
+                winProb: "Win Chance", cancel: "Cancel", matchEnded: "Match Finished",
+                joinMatch: "Join Match", viewMode: "Viewer", editMode: "Editor", chartTitle: "Live Progress",
+                showChart: "Show Chart", visuals: "Visuals", language: "Language", theme: "Theme",
+                appStatus: "App Status", autoAnn: "Auto Announce", annStyle: "Speech Style", mascot: "Mascot",
+                mascotStyle: "Personality", customTemp: "Custom Template", wipeData: "Wipe All Data", settings: "Settings", 
+                ok: "OK", yes: "Yes", no: "No", errTitle: "Score Mismatch", errDesc: "Total is {s}, must be {r}.",
+                undoTitle: "Undo Round?", undoDesc: "Delete last round?", exitTitle: "Exit Match?", exitDesc: "Progress saved locally.",
+                shareText: "🏆 HazariVai: {w} won with {t} points!"
+            },
+            bn: { 
+                allTimeWins:"সর্বমোট জয়", pastHistory:"পুরানো ম্যাচ", startNewGame:"নতুন গেম শুরু করুন", newGameSetup:"গেম সেটিংস", 
+                targetScore:"টার্গেট স্কোর", roundTotal:"রাউন্ডের মোট", numPlayers:"প্লেয়ার", launchGame:"গেম শুরু করুন", 
+                activeMatch:"চলমান ম্যাচ", exit:"বন্ধ", addScores:"স্কোর দিন", undo:"ভুল সংশোধন", saveRound:"স্কোর জমা দিন", 
+                navDash:"হিসাব", navGame:"গেম", navSettings:"সেটিংস", wins: "জয়", 
+                p1Placeholder: "প্লেয়ার ১", p2Placeholder: "প্লেয়ার ২", p3Placeholder: "প্লেয়ার ৩", p4Placeholder: "প্লেয়ার ৪",
+                winProb: "জেতার সম্ভাবনা", cancel: "বাতিল", matchEnded: "ম্যাচ শেষ",
+                joinMatch: "ম্যাচে যোগ দিন", viewMode: "ভিউয়ার", editMode: "এডিটর", chartTitle: "লাইভ চার্ট",
+                showChart: "চার্ট দেখান", visuals: "চাক্ষুষ", language: "ভাষা", theme: "থিম",
+                appStatus: "অ্যাপের অবস্থা", autoAnn: "অটো অ্যানাউন্স", annStyle: "ঘোষণার ধরণ", mascot: "ম্যাসকট",
+                mascotStyle: "আচরণ", customTemp: "কাস্টম টেমপ্লেট", wipeData: "সব ডেটা মুছুন", settings: "সেটিংস", 
+                ok: "ঠিক আছে", yes: "হ্যাঁ", no: "বাতিল", errTitle: "ভুল হয়েছে", errDesc: "যোগফল {s} হয়েছে, {r} হওয়া আবশ্যক।",
+                undoTitle: "ভুল সংশোধন?", undoDesc: "শেষ রাউন্ড মুছতে চান?", exitTitle: "বন্ধ করবেন?", exitDesc: "স্কোর সেভ থাকবে।",
+                shareText: "🏆 HazariVai: {w} জিতেছে {t} পয়েন্টে!"
+            }
+        };
+
+        const bnDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+        const enDigits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+        function toBN(str) { return str.toString().split('').map(d => enDigits.indexOf(d) > -1 ? bnDigits[enDigits.indexOf(d)] : d).join(''); }
+        function toEN(str) { return str.toString().split('').map(d => bnDigits.indexOf(d) > -1 ? enDigits[bnDigits.indexOf(d)] : d).join(''); }
+
+        let state = { 
+            active: null, history: [], stats: {}, theme: 'light', lang: 'en', autoAnn: false,
+            speechMode: 'standard', customSpeechTemplate: '{p1} is leading with {s1}.',
+            charEnabled: true, charResponseMode: 'fun', showChart: true,
+            syncQueue: [], matchAccess: 'edit'
+        };
+        let matchChart;
+
+        function saveState() { localStorage.setItem('forhaz_v8_pro', JSON.stringify(state)); }
+        function haptic(type) { if (navigator.vibrate) { if(type==='click') navigator.vibrate(15); else if(type==='win') navigator.vibrate([100,50,100]); } }
+        
+        function load() {
+            const s = localStorage.getItem('forhaz_v8_pro');
+            if(s) state = {...state, ...JSON.parse(s)};
+            document.body.setAttribute('data-theme', state.theme);
+            document.getElementById('theme-sel').value = state.theme;
+            document.getElementById('lang-sel').value = state.lang;
+            document.getElementById('auto-ann-toggle').checked = state.autoAnn;
+            document.getElementById('show-chart-toggle').checked = state.showChart;
+            document.getElementById('char-toggle').checked = state.charEnabled;
+            document.getElementById('speech-mode-sel').value = state.speechMode || 'standard';
+            document.getElementById('char-mode-sel').value = state.charResponseMode || 'fun';
+            document.getElementById('custom-speech-temp').value = state.customSpeechTemplate || '';
+            document.getElementById('mascot-container').style.display = state.charEnabled ? 'flex' : 'none';
+            document.getElementById('mascot-settings').style.display = state.charEnabled ? 'block' : 'none';
+            upLang(); renderDash();
+            if(state.active) { showView('game'); syncToServer(); }
+            setInterval(processQueue, 10000);
+        }
+
+        async function syncToServer(force = false) {
+            const g = state.active; if(!g) return;
+            const indicator = document.getElementById('sync-indicator');
+            const syncTime = document.getElementById('sync-time');
+            if(!navigator.onLine) { indicator.style.background = '#ef4444'; return; }
+            indicator.style.background = '#fbbf24';
+
+            const payload = { match_id: g.matchId, action: force ? 'push' : 'sync', game_data: g, pin: g.pin };
+            try {
+                const res = await fetch('./api/sync.php', { method: 'POST', body: JSON.stringify(payload) });
+                const data = await res.json();
+                if(data.status === 'success') {
+                    indicator.style.background = '#10b981';
+                    syncTime.innerText = 'Synced: ' + new Date().toLocaleTimeString();
+                    if(data.game_data && state.matchAccess === 'view') { state.active = data.game_data; renderGame(); }
+                }
+            } catch(e) { indicator.style.background = '#ef4444'; if(force) state.syncQueue.push(JSON.parse(JSON.stringify(g))); }
+        }
+
+        function renderGame() {
+            const g = state.active; if(!g) return;
+            const isBN = state.lang === 'bn';
+            const sorted = [...g.players].sort((a,b) => b.total - a.total);
+            
+            document.getElementById('match-info-display').innerText = `ID: ${g.matchId} | PIN: ${state.matchAccess === 'edit' ? g.pin : '****'}`;
+            const badge = document.getElementById('access-badge');
+            badge.innerText = i18n[state.lang][state.matchAccess + 'Mode'];
+            badge.className = 'badge-mode mode-' + state.matchAccess;
+            document.getElementById('editor-controls').style.display = state.matchAccess === 'edit' ? 'block' : 'none';
+
+            document.getElementById('game-board').innerHTML = sorted.map(p => `
+                <div class="player-chip p${p.id}">
+                    <div class="player-name-small"><img class="avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=${p.name}">${p.name}</div>
+                    <div class="score-val">${isBN ? toBN(p.total) : p.total}</div>
+                    <div class="prob-badge">${i18n[state.lang].winProb}: ${isBN ? toBN(calcProb(p,g)) : calcProb(p,g)}%</div>
+                </div>`).join('');
+
+            document.getElementById('score-inputs').innerHTML = g.players.map(p => `
+                <div class="score-row"><div class="input-group"><label>${p.name}</label><input type="text" id="in-${p.id}" oninput="this.value=toEN(this.value); sumCheck();" inputmode="numeric" placeholder="0"></div><button class="bolt-btn" onclick="fillRem(${p.id})">⚡</button></div>`).join('');
+            
+            let table = `<thead><tr><th>R</th>${g.players.map(p => `<th>${p.name.substring(0,3)}</th>`).join('')}</tr></thead><tbody>`;
+            for(let i = g.players[0].history.length - 1; i >= 0; i--) {
+                table += `<tr><td>${isBN?toBN(i+1):i+1}</td>${g.players.map(p => `<td>${isBN?toBN(p.history[i]):p.history[i]}</td>`).join('')}</tr>`;
+            }
+            document.getElementById('round-log').innerHTML = table + '</tbody>';
+            updateChart();
+        }
+
+        function fillRem(id) {
+            const g = state.active; let cur = 0;
+            g.players.forEach(p => { if(p.id!==id) cur += (parseInt(document.getElementById(`in-${p.id}`).value)||0); });
+            document.getElementById(`in-${id}`).value = Math.max(0, g.roundSum - cur); sumCheck();
+        }
+
+        function strictSave() {
+            const g = state.active; const scores = g.players.map(p => parseInt(document.getElementById(`in-${p.id}`).value) || 0);
+            const sum = scores.reduce((a,b)=>a+b,0);
+            if(sum !== g.roundSum) {
+                openModal('❌', i18n[state.lang].errTitle, i18n[state.lang].errDesc.replace('{s}', sum).replace('{r}', g.roundSum), [{text: i18n[state.lang].ok}]);
+                return;
+            }
+            g.players.forEach((p, i) => { p.history.push(scores[i]); p.total += scores[i]; p.last = scores[i]; });
+            saveState(); renderGame(); syncToServer(true);
+            if(state.autoAnn) announceScores();
+
+            const winner = g.players.find(p => p.total >= g.target);
+            if(winner) {
+                haptic('win'); announceScores();
+                state.history.push({ winner: winner.name, total: winner.total, date: Date.now(), players: g.players.map(p=>({name:p.name, total:p.total, history: p.history})) });
+                state.stats[winner.name] = (state.stats[winner.name] || 0) + 1;
+                openModal('🏆', winner.name + ' Won!', winner.total + ' Points!', [{text: i18n[state.lang].ok, cb: () => { state.active = null; saveState(); showView('dashboard'); }}]);
+                state.active.status = 'finished'; syncToServer(true);
+            }
+        }
+
+        function announceScores() {
+            if (!('speechSynthesis' in window)) return;
+            const g = state.active; if (!g) return;
+            window.speechSynthesis.cancel();
+            const isBN = state.lang === 'bn'; 
+            const sorted = [...g.players].sort((a,b) => b.total - a.total);
+            const leader = sorted[0]; const last = sorted[sorted.length - 1];
+            let text = "";
+
+            const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+            if (g.status === 'finished' || leader.total >= g.target) {
+                let winMsg = isBN ? 
+                    pick([`অভিনন্দন! ${leader.name} ${toBN(leader.total)} পয়েন্ট নিয়ে জিতে গেছে!`, `খেলা শেষ! ${leader.name} সবাইকে হারিয়ে দিলো।`, `চমৎকার খেলেছেন ${leader.name}, আপনিই বিজয়ী!`]) :
+                    pick([`Congratulations! ${leader.name} won with ${leader.total} points!`, `Game over! ${leader.name} is the champion.`, `Well played ${leader.name}, you are the winner!`]);
+                
+                let summary = isBN ? "। ফাইনাল স্কোর হলো: " : ". Final scores are: ";
+                sorted.forEach((p, idx) => {
+                    summary += `${p.name} ${isBN?toBN(p.total):p.total}${idx === sorted.length - 1 ? "।" : ", "}`;
+                });
+                text = winMsg + summary;
+            } else {
+                const mode = state.speechMode || 'standard';
+                
+                if (mode === 'fast') {
+                    sorted.forEach(p => text += `${p.name}: ${isBN?toBN(p.total):p.total}. `);
+                } 
+                else if (mode === 'slang' && isBN) {
+                    const intros = [
+                        `${leader.name} তো পুরাই কোপাইতাছে ${toBN(leader.total)} পয়েন্ট নিয়া! `,
+                        `${leader.name} এর দাপটে বাকিরা তো কুপোকাত, পয়েন্ট হইলো ${toBN(leader.total)}। `,
+                        `আরেহ! ${leader.name} তো কারো ধার ধারতেছে না, ${toBN(leader.total)} নিয়া সবার আগে। `,
+                        `বস ইজ অলওয়েজ বস! ${leader.name} এখন ${toBN(leader.total)} এ বইসা হাসতাছে। `,
+                        `${leader.name} মনে হয় আজকা বিরিয়ানি খাইয়া নামছে, ${toBN(leader.total)} নিয়া উড়তাছে! `,
+                        `সবাই কি ${leader.name} এর খেলা দেখতাছেন? ${toBN(leader.total)}? উফ! আগুন! `,
+                        `${leader.name} একাই তো মাঠ গরম কইরা ফেললো, পয়েন্ট তো মাশাল্লাহ ${toBN(leader.total)}। `,
+                        `এই খেলা কি শুধু ${leader.name} একাই খেলতাছে? ${toBN(leader.total)} নিয়া উনিই তো রাজা! `,
+                        `${leader.name} এর পয়েন্ট দেইখা তো আমারই মাথা ঘুরতাছে, ${toBN(leader.total)}! `,
+                        `উড়া ধুরা খেলতাছে ${leader.name}, ${toBN(leader.total)} পয়েন্টের বন্যায় ভাসায় দিল! `
+                    ];
+                    
+                    let midText = "";
+                    if (sorted.length > 2) {
+                        const midPlayers = sorted.slice(1, -1);
+                        const mids = [
+                            `মাঝখানে ${midPlayers.map(p => p.name + ' (' + toBN(p.total) + ')').join(' আর ')} এর অবস্থা তো পুরাই ল্যাজেগোবরে। `,
+                            `${midPlayers.map(p => p.name + ' (' + toBN(p.total) + ')').join(' আর ')} মনে হয় ঘুমাইতাছে। `,
+                            `বাকিদের অবস্থা দেখেন, ${midPlayers.map(p => p.name + ' এর মাত্র ' + toBN(p.total)).join(' আর ')}। `,
+                            `${midPlayers.map(p => p.name).join(' আর ')} কি আজকা দান খয়রাত করতে নামছেন? স্কোর তো মাত্র ${midPlayers.map(p => toBN(p.total)).join(' আর ')}! `,
+                            `${midPlayers.map(p => p.name + ' মিঞা আপনার ' + toBN(p.total)).join(' আর ')} নিয়া আর কতক্ষণ লটরপটর করবেন? `,
+                            `আপনারা কি ${leader.name} কে ${toBN(leader.total)} পয়েন্টে জিতাই দেওয়ার কন্টাক্ট নিছেন? `,
+                            `মাঝখানের পাবলিকদের কোনো হুশ নাই, ${midPlayers.map(p => p.name + ' এর ' + toBN(p.total)).join(' আর ')} নিয়া বইসা আছেন! `,
+                            `${midPlayers.map(p => p.name + ' এর ' + toBN(p.total)).join(' আর ')}, ছিঃ ছিঃ! `,
+                            `${midPlayers.map(p => p.name + ' এর ' + toBN(p.total)).join(' আর ')}, আপনাদের থাইকা তো আমার ম্যাসকটই ভালো খেলে! `,
+                            `মাঝখানের গুলার কি হাত পা চলতাছে না? পয়েন্ট তো ${midPlayers.map(p => toBN(p.total)).join(' আর ')} তেই পইড়া আছে! `
+                        ];
+                        midText = pick(mids);
+                    }
+
+                    const lasts = [
+                        `${last.name} ভাই, আপনি কি খেলা দেখতাছেন নাকি অন্য দুনিয়ায়? আপনার তো মাত্র ${toBN(last.total)}! `,
+                        `আর ${last.name} এর কথা কি বলবো? ${toBN(last.total)} নিয়া উনি তো সবার পিছে। `,
+                        `${last.name} ভাই, একটু চেষ্টা করেন, ${toBN(last.total)} দিয়ে কি আর হবে? `,
+                        `${last.name} ভাই, আপনার জন্য এক বালতি সমবেদনা! মাত্র ${toBN(last.total)}? `,
+                        `এই যে ${last.name}, আপনি কি হারার রেকর্ড করতে নামছেন নাকি? পয়েন্ট তো মাত্র ${toBN(last.total)}! `,
+                        `উনাকে কেউ চা কফি খাওয়ান, ${last.name} তো ${toBN(last.total)} পয়েন্ট নিয়ে মাঠেই ঘুমাই গেছে! `,
+                        `পরের বার থেকে ${last.name} ভাইre দর্শক হিসেবে রাইখেন, ${toBN(last.total)} দিয়ে কি আর হয়! `,
+                        `শুনেন ${last.name}, পয়েন্ট তো মাগনা পাওয়া যায় না, ${toBN(last.total)} তে পইড়া থাইকেন না! `,
+                        `${last.name} এর ${toBN(last.total)} পয়েন্ট দেইখা তো আমার চোখে পানি চইলা আইলো! `,
+                        `ভাই ${last.name}, আপনে কি গুটি গুনা ভুল করতাছেন নাকি? ${toBN(last.total)} তে পইড়া আছেন কেন? `
+                    ];
+                    text = pick(intros) + midText + pick(lasts);
+                } 
+                else if (mode === 'friendly') {
+                    const intros = isBN ? 
+                        [`খুব সুন্দর খেলা হচ্ছে। বর্তমানে ${leader.name} এগিয়ে আছে। `, `এখন পর্যন্ত ${leader.name} পয়েন্ট টেবিলের শীর্ষে। `, `সবাই বেশ ভালো খেলছেন, তবে ${leader.name} সবার আগে। `] :
+                        [`Great game so far. ${leader.name} is leading. `, `${leader.name} is currently at the top of the board. `, `Everyone is playing well, but ${leader.name} is in the lead. `];
+                    
+                    text = pick(intros);
+                    sorted.forEach((p, idx) => {
+                        if(isBN) text += `${p.name} এর সংগ্রহ ${toBN(p.total)} পয়েন্ট। `;
+                        else text += `${p.name} has collected ${p.total} points. `;
+                    });
+                } 
+                else if (mode === 'custom') {
+                    text = state.customSpeechTemplate.replace('{p1}', leader.name).replace('{s1}', leader.total);
+                } 
+                else {
+                    // Standard Mode - Dynamic
+                    const intros = isBN ? 
+                        [`সবাই একটু খেয়াল করুন, বর্তমান স্কোর হলো: `, `স্কোরবোর্ডের আপডেট দিচ্ছি: `, `চলতি ম্যাচের স্কোরকার্ড: `, `চলুন স্কোরগুলো একবার দেখে নিই: `] :
+                        [`Attention everyone, here is the score: `, `Updating the leaderboard: `, `Current match stats: `, `Let's look at the scores: `];
+                    
+                    text = pick(intros);
+                    sorted.forEach((p, idx) => {
+                        text += `${p.name} ${isBN?toBN(p.total):p.total}${idx === sorted.length - 1 ? "।" : ", "}`;
+                    });
+                }
+            }
+
+            const ut = new SpeechSynthesisUtterance(text);
+            ut.lang = isBN ? 'bn-BD' : 'en-US'; ut.rate = 0.95;
+            ut.onstart = () => { document.getElementById('mascot-body').classList.add('is-speaking'); mascotSay(text); };
+            ut.onend = () => { document.getElementById('mascot-body').classList.remove('is-speaking'); setTimeout(()=>document.getElementById('mascot-bubble').style.display='none', 2500); };
+            window.speechSynthesis.speak(ut);
+        }
+
+        function mascotSay(t) { const b = document.getElementById('mascot-bubble'); b.innerText = t; b.style.display = 'block'; }
+        function mascotClick() { 
+            haptic('click'); 
+            if(state.charResponseMode === 'fun' && state.lang === 'bn') {
+                const msgs = ["কি খবর মামা? খেলা কেমন চলে?", "কোপান মামা!", "সবাই কি ঘুমাইতাছেন?", "হিসাব ঠিক রাইখেন!"];
+                mascotSay(msgs[Math.floor(Math.random()*msgs.length)]);
+            } else announceScores();
+        }
+        
+        function initChart() {
+            if(!state.showChart) { document.getElementById('match-chart-container').style.display='none'; return; }
+            document.getElementById('match-chart-container').style.display='block';
+            const ctx = document.getElementById('matchChart').getContext('2d');
+            if(matchChart) matchChart.destroy();
+            matchChart = new Chart(ctx, {
+                type: 'line',
+                data: { labels: ['Start'], datasets: state.active.players.map((p,i)=>({ label:p.name, data:[0], borderColor:['#4361ee','#f72585','#f8961e','#7209b7'][i], tension:0.4 })) },
+                options: { responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
+            });
+            updateChart();
+        }
+
+        function updateChart() {
+            if(!matchChart || !state.active) return;
+            matchChart.data.labels = ['Start', ...Array.from({length: state.active.players[0].history.length}, (_,i)=>i+1)];
+            state.active.players.forEach((p,i) => { let s=0; matchChart.data.datasets[i].data = [0, ...p.history.map(v=>s+=v)]; });
+            matchChart.update();
+        }
+
+        async function joinMatch() {
+            const id = document.getElementById('join-id').value.trim();
+            const pin = document.getElementById('join-pin').value.trim();
+            if(!id) return;
+            try {
+                const res = await fetch('./api/sync.php', { method:'POST', body:JSON.stringify({match_id:id, action:'sync', pin:pin||null}) });
+                const d = await res.json();
+                if(d.game_data) { state.active=d.game_data; state.matchAccess=d.access; saveState(); showView('game'); } else alert("Match not found!");
+            } catch(e) { alert("Network Error!"); }
+        }
+
+        function confirmUndo() {
+            if(!state.active || !state.active.players[0].history.length) return;
+            openModal('↩️', i18n[state.lang].undoTitle, i18n[state.lang].undoDesc, [{text: i18n[state.lang].yes, cb:()=>{
+                state.active.players.forEach(p=>{ p.total -= p.history.pop(); p.last=p.history[p.history.length-1]||0; });
+                saveState(); renderGame(); syncToServer(true);
+            }}, {text: i18n[state.lang].no}]);
+        }
+
+        function openEditModal() {
+            const g = state.active; if(!g || state.matchAccess!=='edit') return;
+            let html = `<div style="text-align:left; display:grid; gap:10px;">
+                <div class="input-group"><label>Target</label><input type="number" id="ed-tar" value="${g.target}"></div>
+                <div class="input-group"><label>Round Sum</label><input type="number" id="ed-rnd" value="${g.roundSum}"></div>
+                <label style="font-size:0.8rem; font-weight:800;">PLAYER NAMES</label>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    ${g.players.map((p,i)=> `<input type="text" id="ed-n-${i}" value="${p.name}">`).join('')}
+                </div>
+            </div>`;
+            openModal('⚙️', 'Edit Board', html, [{text: i18n[state.lang].ok, cb:()=>{
+                g.target=parseInt(document.getElementById('ed-tar').value)||g.target;
+                g.roundSum=parseInt(document.getElementById('ed-rnd').value)||g.roundSum;
+                g.players.forEach((p,i)=> p.name=document.getElementById(`ed-n-${i}`).value||p.name);
+                saveState(); renderGame(); syncToServer(true);
+            }}, {text: i18n[state.lang].cancel}]);
+        }
+
+        function confirmExit() { openModal('🚪', i18n[state.lang].exitTitle, i18n[state.lang].exitDesc, [{text: i18n[state.lang].yes, cb:()=>{state.active=null; saveState(); showView('dashboard');}}, {text: i18n[state.lang].no}]); }
+
+        // Dragging & Core
+        let isDrag=false, startX, startY;
+        function startDrag(e) { isDrag=true; const c = e.type==='touchstart'?e.touches[0]:e; const r = document.getElementById('mascot-container').getBoundingClientRect(); startX = c.clientX-r.left; startY = c.clientY-r.top; document.addEventListener('mousemove', drag); document.addEventListener('touchmove', drag, {passive:false}); document.addEventListener('mouseup', endDrag); document.addEventListener('touchend', endDrag); }
+        function drag(e) { if(!isDrag) return; if(e.type==='touchmove') e.preventDefault(); const c = e.type==='touchmove'?e.touches[0]:e; const m = document.getElementById('mascot-container'); m.style.left = (c.clientX-startX)+'px'; m.style.top = (c.clientY-startY)+'px'; m.style.bottom='auto'; m.style.right='auto'; }
+        function endDrag() { isDrag=false; }
+        function startGame() { const c = parseInt(document.getElementById('setup-count').value); const p = []; for(let i=0; i<c; i++) p.push({id:i, name:document.getElementById(`p-name-${i}`).value||`P${i+1}`, total:0, history:[], last:0}); state.active = { matchId: 'HZ-'+Math.floor(1000+Math.random()*9000), pin: Math.floor(1000+Math.random()*9000).toString(), players:p, target:parseInt(document.getElementById('setup-target').value), roundSum:parseInt(document.getElementById('setup-round').value), status:'running' }; state.matchAccess='edit'; saveState(); showView('game'); syncToServer(true); }
+        function showView(v) { document.querySelectorAll('.view').forEach(x=>x.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active')); document.getElementById('view-'+v).classList.add('active'); const n = v==='setup'?'n-game':(v==='dashboard'?'n-dash':'n-sett'); if(document.getElementById(n)) document.getElementById(n).classList.add('active'); if(v==='dashboard') renderDash(); if(v==='game') { renderGame(); initChart(); } }
+        function renderDash() { const w = Object.entries(state.stats).sort((a,b)=>b[1]-a[1]); document.getElementById('stats-list').innerHTML = w.map(([n,v])=>`<div style="padding:12px; background:var(--primary-light); border-radius:15px; text-align:center; min-width:80px;"><div style="font-size:0.6rem; font-weight:800; color:var(--primary);">${v} Wins</div><div style="font-weight:700;">${n}</div></div>`).join('')||'No stats'; document.getElementById('history-list').innerHTML = state.history.slice().reverse().map(h=>`<div class="card" style="display:flex; justify-content:space-between;"><div><div style="font-weight:800; color:var(--primary);">🏆 ${h.winner}</div><div style="font-size:0.65rem;">${new Date(h.date).toLocaleDateString()}</div></div><div style="text-align:right; font-size:0.7rem;">${h.players.map(p=>`<div>${p.name}: ${p.total}</div>`).join('')}</div></div>`).join('')||'No history'; }
+        async function processQueue() { if(!navigator.onLine || !state.syncQueue.length) return; const m=state.syncQueue[0]; try { await fetch('./api/sync.php', {method:'POST', body:JSON.stringify({match_id:m.matchId, action:'push', game_data:m, pin:m.pin})}); state.syncQueue.shift(); saveState(); } catch(e){} }
+        function openModal(i,t,d,b) { document.getElementById('modal-icon').innerText=i; document.getElementById('modal-title').innerText=t; document.getElementById('modal-desc').innerHTML=d; const c=document.getElementById('modal-btns'); c.innerHTML=""; b.forEach(x=>{const e=document.createElement('button'); e.innerText=x.text; e.className='btn-primary'; e.onclick=()=>{document.getElementById('global-modal').style.display='none'; if(x.cb)x.cb();}; c.appendChild(e);}); document.getElementById('global-modal').style.display='flex'; }
+        function togglePlayerInputs() { const c=parseInt(document.getElementById('setup-count').value); const con=document.getElementById('player-inputs'); con.innerHTML=""; for(let i=0; i<c; i++){const inp=document.createElement('input'); inp.type='text'; inp.id=`p-name-${i}`; inp.placeholder=`Player ${i+1}`; con.appendChild(inp);} }
+        function resume() { if(state.active) showView('game'); else showView('setup'); }
+        function upTheme() { state.theme=document.getElementById('theme-sel').value; document.body.setAttribute('data-theme', state.theme); saveState(); }
+        function upLang() { state.lang=document.getElementById('lang-sel').value; document.querySelectorAll('[data-i18n]').forEach(el=>el.innerText=i18n[state.lang][el.getAttribute('data-i18n')]||el.innerText); saveState(); if(state.active) renderGame(); }
+        function upShowChart() { state.showChart=document.getElementById('show-chart-toggle').checked; saveState(); if(state.active) initChart(); }
+        function upAutoAnn() { state.autoAnn=document.getElementById('auto-ann-toggle').checked; saveState(); }
+        function upSpeechMode() { state.speechMode=document.getElementById('speech-mode-sel').value; document.getElementById('custom-speech-area').style.display=state.speechMode==='custom'?'block':'none'; saveState(); }
+        function upCharToggle() { state.charEnabled=document.getElementById('char-toggle').checked; document.getElementById('mascot-container').style.display=state.charEnabled?'flex':'none'; document.getElementById('mascot-settings').style.display=state.charEnabled?'block':'none'; saveState(); }
+        function upCharMode() { state.charResponseMode=document.getElementById('char-mode-sel').value; saveState(); }
+        function upCustomTemp() { state.customSpeechTemplate=document.getElementById('custom-speech-temp').value; saveState(); }
+        function wipe() { if(confirm("Wipe all data?")) { localStorage.clear(); location.reload(); } }
+        function calcProb(p,g) { if(p.total>=g.target) return 100; let m=p.history.length>0?((p.history.slice(-2).reduce((a,b)=>a+b,0)/2)/(g.roundSum*0.4))*30:0; return Math.min(Math.max(Math.round(((p.total/g.target)*70)+m),5), 99); }
+        function sumCheck() { let s=0; state.active.players.forEach(p=>s+=(parseInt(document.getElementById(`in-${p.id}`).value)||0)); const w=document.getElementById('game-warn'); w.innerText=`Total: ${s} / ${state.active.roundSum}`; w.style.color=s===state.active.roundSum?'var(--success)':'var(--danger)'; }
+
+        load(); togglePlayerInputs();
+    </script>
+</body>
+</html>
