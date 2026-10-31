@@ -1,8 +1,9 @@
-const CACHE_NAME = 'forhaz-v8.2';
+const CACHE_NAME = 'forhaz-v8.3';
 const assets = [
   './',
   './index.html',
   './manifest.json',
+  './vendor/qrcode.js',
   './icon-192.png',
   './icon-512.png',
   './favicon.ico',

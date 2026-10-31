@@ -108,6 +108,15 @@
         .modal-content {max-height:90vh;overflow:auto} .history-table {width:100%;border-collapse:collapse} .history-table td,.history-table th {padding:6px;border-bottom:1px solid var(--border)}
         .score-progress {height:7px;border-radius:8px;background:var(--border);overflow:hidden;margin:6px 0} .score-progress span {display:block;height:100%;background:var(--primary);transition:width .25s}
         .celebration {position:fixed;top:-30px;z-index:4000;pointer-events:none;animation:confettiFall 2.4s ease-in forwards} @keyframes confettiFall {to {transform:translateY(110vh) rotate(540deg);opacity:0}}
+        .score-burst {position:fixed;z-index:2200;pointer-events:none;font-weight:900;color:#16a34a;animation:scoreFloat 1.5s ease-out forwards}
+        @keyframes scoreFloat {to {transform:translateY(-55px);opacity:0}}
+        .toss-spin {display:inline-block;font-size:3rem;animation:tossSpin .8s ease-out} @keyframes tossSpin {from{transform:rotate(-540deg) scale(.5)}to{transform:rotate(0) scale(1)}}
+        .robot-face:before,.robot-face:after {content:'';position:absolute;top:9px;width:8px;height:8px;background:#00ff93;border-radius:50%;animation:blinkEyes 5s infinite} .robot-face:before{left:12px}.robot-face:after{right:12px} @keyframes blinkEyes {0%,45%,49%,100%{transform:scaleY(1)}47%{transform:scaleY(.1)}}
+        body:has(#score-inputs input:focus) #mascot-container {opacity:.2;pointer-events:none} body:has(#score-inputs input:focus) .mascot-wrapper {pointer-events:none}
+        .podium {display:flex;gap:6px;align-items:end;justify-content:center;margin:12px 0}.podium div {flex:1;min-width:0;padding:12px 4px;border-radius:14px;background:var(--primary-light);animation:podiumIn .6s ease-out;overflow-wrap:anywhere}.podium div:first-child {background:#fef3c7;color:#713f12} @keyframes podiumIn {from {transform:translateY(25px);opacity:0} to {transform:translateY(0);opacity:1}}
+        .player-chip.leader {border-color:#eab308;box-shadow:0 0 16px #eab30855}.player-chip.duck {animation:duckWobble .7s ease-in-out} @keyframes duckWobble {25%{transform:rotate(-2deg)}75%{transform:rotate(2deg)}}
+        .match-point {animation:pointPulse 1.6s ease-in-out 3} @keyframes pointPulse {50% {box-shadow:0 0 0 5px #f9731670}}
+        #magic-actions {max-height:55vh;overflow-y:auto;overscroll-behavior:contain} #magic-actions:not([hidden]) button {animation:toolPop .25s backwards;transform-origin:right center} #magic-actions button:nth-child(2n) {animation-delay:.04s} #magic-actions button:nth-child(3n) {animation-delay:.08s} @keyframes toolPop {from{opacity:0;transform:translateX(20px) scale(.85)}to{opacity:1;transform:none}}
         @media (prefers-reduced-motion:reduce) {*,*::before,*::after {animation-duration:.01ms!important;transition-duration:.01ms!important}}
     </style>
 </head>
@@ -121,7 +130,7 @@
     <div id="magic-orb" aria-label="Quick tools" role="group"><div id="magic-actions" hidden>
         <button onclick="playerReport()">👤 Player report</button><button onclick="scoreCalculator()">🧮 Score calculator</button>
         <button onclick="dealerToss()">🎲 Dealer toss</button><button onclick="shareInvite()">📱 Share viewer link</button>
-        <button onclick="toggleAwake()">🔆 Screen awake</button></div>
+        <button onclick="showInviteQR()">📷 Viewer QR</button><button onclick="reactionMenu()">🎭 Reactions</button><button onclick="seriesSummary()">🏆 Today’s series</button><button onclick="cloudLeaderboard()">🌐 Cloud leaderboard</button><button onclick="toggleAwake()">🔆 Screen awake</button></div>
         <button id="orb-handle" aria-label="Open quick tools" aria-expanded="false">✨</button></div>
 
     <!-- Dashboard -->
@@ -158,7 +167,7 @@
                 <div class="input-group"><label data-i18n="roundTotal">Round Sum</label><input type="number" id="setup-round" value="360"></div>
             </div>
             <div class="input-group"><label data-i18n="numPlayers">Players</label><select id="setup-count" onchange="togglePlayerInputs()"><option value="2">2 Players</option><option value="3">3 Players</option><option value="4" selected>4 Players</option></select></div>
-            <div id="player-inputs" style="display: grid; gap: 10px;"></div>
+            <div id="player-inputs" style="display: grid; gap: 10px;"></div><div id="recent-players" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px"></div>
             <button class="btn-primary btn-full" onclick="startGame()" style="margin-top: 25px;" data-i18n="launchGame">Launch Match</button>
             <button class="btn-outline btn-full" onclick="showView('dashboard')" style="margin-top: 10px;" data-i18n="cancel">Cancel</button>
         </div>
@@ -326,6 +335,7 @@
         </div>
     </div>
 
+    <script src="./vendor/qrcode.js"></script>
     <script>
         const i18n = {
             en: { 
@@ -413,7 +423,7 @@
                 rev: g.rev || 0,
                 status: g.status || 'running',
                 target: g.target,
-                roundSum: g.roundSum,
+                roundSum: g.roundSum, dealerStart: g.dealerStart || 0,
                 players: g.players.map(p => ({ name: p.name, total: p.total, history: p.history }))
             });
         }
@@ -669,10 +679,7 @@
                                     recordFinishedMatchOnce(incoming, w);
                                     saveState();
                                     announceScores();
-                                    openModal('🏆', esc(w.name) + ' Won!', w.total + ' Points!', [{
-                                        text: i18n[state.lang].ok,
-                                        cb: () => { state.active = null; state.dirty = false; saveState(); showView('dashboard'); }
-                                    }]);
+                                    celebrate(); showVictory(incoming, w);
                                 }
                             }
                         } else {
@@ -699,6 +706,7 @@
             const isBN = state.lang === 'bn';
             const sorted = [...g.players].sort((a, b) => b.total - a.total);
 
+            const oldCards = new Map([...document.querySelectorAll('#game-board .player-chip[data-player-id]')].map(el => [el.dataset.playerId, {rect:el.getBoundingClientRect(), score:Number(el.dataset.score)}]));
             // Preserve typed draft inputs if we're not clearing for a new round
             const draftValues = {};
             let focusedId = document.activeElement ? document.activeElement.id : null;
@@ -716,7 +724,7 @@
             document.getElementById('editor-controls').style.display = state.matchAccess === 'edit' ? 'block' : 'none';
 
             document.getElementById('game-board').innerHTML = sorted.map(p => `
-                <div class="player-chip p${p.id}">
+                <div class="player-chip p${p.id}" data-player-id="${esc(p.id)}" data-score="${Number(p.total) || 0}">
                     <div class="player-name-small"><img class="avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(p.name)}">${esc(p.name)}</div>
                     <div class="score-val">${isBN ? toBN(p.total) : p.total}</div>
                     <div class="prob-badge">${i18n[state.lang].winProb}: ${isBN ? toBN(calcProb(p, g)) : calcProb(p, g)}%</div>
@@ -731,6 +739,9 @@
             }
             sumCheck();
             updateExtraBoard(g, sorted);
+            animateBoardChanges(oldCards, isBN);
+            const dealer = g.players[((g.dealerStart || 0) + g.players[0].history.length) % g.players.length];
+            document.getElementById('match-info-display').innerText += ` | 🃏 Dealer: ${dealer.name} (round rotation)`;
 
             let table = `<thead><tr><th>R</th>${g.players.map(p => `<th>${esc(Array.from(p.name).slice(0, 4).join(''))}</th>`).join('')}</tr></thead><tbody>`;
             for (let i = g.players[0].history.length - 1; i >= 0; i--) {
@@ -776,18 +787,20 @@
             state.dirty = true;
             saveState();
             renderGame(true);
+            animateRound(scores, g);
             syncToServer(true);
 
             if (winner) {
                 celebrate();
                 haptic('win');
                 announceScores();
-                openModal('🏆', esc(winner.name) + ' Won!', winner.total + ' Points!', [{
-                    text: i18n[state.lang].ok,
-                    cb: () => { state.active = null; state.dirty = false; saveState(); showView('dashboard'); }
-                }]);
+                showVictory(g, winner);
             } else if (state.autoAnn) {
-                announceScores();
+                const sweepIndex = scores.findIndex(score => score === g.roundSum);
+                const duckPlayer = g.players.find(p => p.history.length >= 3 && p.history.slice(-3).every(score => Number(score) === 0));
+                if (sweepIndex >= 0) speakUtterance(state.lang === 'bn' ? `${g.players[sweepIndex].name} ফুল সুইপ!` : `${g.players[sweepIndex].name} scores a full sweep!`);
+                else if (duckPlayer) speakUtterance(state.lang === 'bn' ? `${duckPlayer.name} টানা তিন রাউন্ড আন্ডা!` : `${duckPlayer.name} has three ducks in a row!`);
+                else announceScores();
             }
         }
 
@@ -1328,6 +1341,7 @@
             const n = (v === 'setup' || v === 'game') ? 'n-game' : (v === 'dashboard' ? 'n-dash' : 'n-sett');
             if (document.getElementById(n)) document.getElementById(n).classList.add('active');
             if (v === 'dashboard') renderDash();
+            if (v === 'setup') renderRecentPlayers();
             if (v === 'game') { renderGame(false); initChart(); }
             if (v === 'settings') updateCustomPreview();
         }
@@ -1438,7 +1452,9 @@
             const w = document.getElementById('game-warn');
             if (w) {
                 w.innerText = `Total: ${s} / ${state.active.roundSum}`;
-                document.getElementById('score-progress-fill').style.width = Math.max(0, Math.min(100, s / (state.active.roundSum || 1) * 100)) + '%';
+                const fill = document.getElementById('score-progress-fill');
+                fill.style.width = Math.max(0, Math.min(100, s / (state.active.roundSum || 1) * 100)) + '%';
+                fill.style.background = s === state.active.roundSum ? '#16a34a' : s > state.active.roundSum ? '#ef4444' : 'var(--primary)';
                 w.style.color = s === state.active.roundSum ? 'var(--success)' : 'var(--danger)';
             }
         }
@@ -1451,15 +1467,41 @@
             let table = '<div style="overflow:auto"><table class="history-table"><tr><th>Round</th>' + h.players.map(p => `<th>${esc(p.name)}</th>`).join('') + '</tr>';
             for (let r = 0; r < rounds; r++) table += `<tr><td>${r + 1}</td>` + h.players.map(p => `<td>${esc((p.history || [])[r] ?? '—')}</td>`).join('') + '</tr>';
             table += '</table></div>';
+            const chart = historyChart(h);
+            const highlights = matchHighlights(h);
             const stats = h.players.map(p => {
                 const scores = Array.isArray(p.history) ? p.history : [];
                 return `<div><b>${esc(p.name)}</b>: ${esc(p.total)} · Best ${scores.length ? Math.max(...scores) : '—'} · 🥚 ${scores.filter(n => Number(n) === 0).length}</div>`;
             }).join('');
-            openModal('🏆', 'Match details', `<b>${esc(h.matchName || h.matchId || 'Match')}</b><br>Winner: ${esc(h.winner)}<br>${esc(new Date(h.date).toLocaleString())}<br><br>${stats}<br>${rounds ? table : 'Round history unavailable for this match.'}`, [
-                {text:'🔄 Rematch', cb:() => prepareRematch(h)}, {text:'Close'}
+            openModal('🏆', 'Match details', `<b>${esc(h.matchName || h.matchId || 'Match')}</b><br>Winner: ${esc(h.winner)}<br>${esc(new Date(h.date).toLocaleString())}<br><br>${stats}<br>${highlights}${chart}${rounds ? table : 'Round history unavailable for this match.'}`, [
+                {text:'📸 Share scorecard', cb:() => shareScorecard(h)}, {text:'🔄 Rematch', cb:() => prepareRematch(h)}, {text:'Close'}
             ]);
         }
+        function matchHighlights(h) {
+            let best=null, ducks=0, duckNames=[], previous=[], changes=[];
+            const ps=h.players, rounds=Math.max(0,...ps.map(p=>(p.history||[]).length));
+            ps.forEach(p=>{ const hist=p.history||[]; hist.forEach((s,i)=>{if(!best || Number(s)>best.score) best={name:p.name,score:Number(s),round:i+1};}); const count=hist.filter(n=>Number(n)===0).length; if(count>ducks){ducks=count;duckNames=[p.name];}else if(count && count===ducks)duckNames.push(p.name); });
+            for(let i=0;i<rounds;i++){ const totals=ps.map(p=>(p.history||[]).slice(0,i+1).reduce((a,b)=>a+Number(b||0),0)); const max=Math.max(...totals); const leaders=totals.map((v,j)=>v===max?j:-1).filter(j=>j>=0); if(i && previous.length===1 && leaders.length===1 && previous[0]!==leaders[0]) changes.push(i+1); previous=leaders; }
+            return `<div style="margin:10px 0"><b>Match highlights</b><br>${best?`🔥 Best round: ${esc(best.name)} ${best.score} (R${best.round})<br>`:''}${ducks?`🥚 Most ducks: ${duckNames.map(esc).join(', ')} (${ducks})<br>`:''}${changes.length?`🔄 Lead changes: ${changes.map(n=>'R'+n).join(', ')}`:'No outright lead change recorded.'}</div>`;
+        }
+        function historyChart(h) {
+            const histories = h.players.map(p => Array.isArray(p.history) ? p.history.map(Number) : []);
+            const rounds = Math.max(0, ...histories.map(a => a.length)); if (!rounds) return '';
+            const totals = histories.map(a => { let sum=0; return [0,...a.map(n => sum += Number(n)||0)]; });
+            const max = Math.max(1, ...totals.flat()); const colors=['#4361ee','#e11d48','#10b981','#f59e0b'];
+            const paths=totals.map((arr,i) => `<polyline fill="none" stroke="${colors[i%colors.length]}" stroke-width="3" points="${arr.map((v,j)=>`${20+j*260/rounds},${120-v*100/max}`).join(' ')}"/>`).join('');
+            const legend=h.players.map((p,i)=>`<span style="color:${colors[i%colors.length]}">● ${esc(p.name)}</span>`).join(' &nbsp; ');
+            return `<div><b>Round progress</b><svg viewBox="0 0 300 140" role="img" aria-label="Cumulative scores by round" style="width:100%;max-width:300px">${paths}</svg><small>${legend}</small></div>`;
+        }
+        function renderRecentPlayers() {
+            const names = [...new Set(state.history.slice().reverse().flatMap(h => (h.players || []).map(p => p.name)))].slice(0,12);
+            const container=document.getElementById('recent-players'); container.innerHTML='';
+            if (!names.length) return;
+            const label=document.createElement('small'); label.textContent='Recent players: '; container.appendChild(label);
+            names.forEach(name=> { const button=document.createElement('button'); button.type='button'; button.className='bolt-btn'; button.style.width='auto'; button.textContent=name; button.addEventListener('click',()=>{ const inputs=[...document.querySelectorAll('#player-inputs input')]; const empty=inputs.find(el=>!el.value.trim()); if(empty)empty.value=name; }); container.appendChild(button); });
+        }
         function prepareRematch(h) {
+            if (state.dirty) { openModal('🔄','Sync pending','Wait for the current match to sync before starting a rematch.',[{text:'Close'}]); return; }
             if (state.active && state.active.status !== 'finished' && !confirm('An active match exists. Starting another match will replace it on this device. Continue?')) return;
             document.getElementById('setup-count').value = String(Math.min(4, Math.max(2, h.players.length)));
             togglePlayerInputs();
@@ -1480,20 +1522,31 @@
                 const players = matches.flatMap(h => h.players.filter(p => p.name === name));
                 const scores = players.flatMap(p => Array.isArray(p.history) ? p.history : []);
                 const wins = matches.filter(h => h.winner === name).length;
-                document.getElementById('report-details').innerHTML = `Local completed matches: ${matches.length}<br>Wins: ${wins} (${matches.length ? Math.round(wins / matches.length * 100) : 0}%)<br>Round average: ${scores.length ? (scores.reduce((a,b) => a + Number(b || 0), 0) / scores.length).toFixed(1) : '—'}<br>Best round: ${scores.length ? Math.max(...scores) : '—'} · 🥚 ${scores.filter(s => Number(s) === 0).length}`;
+                const activePlayer = state.active && state.active.players.find(p => p.name === name);
+                const recent = activePlayer ? activePlayer.history.slice(-3) : scores.slice(-3);
+                const sweeps = matches.reduce((n,h)=>n+(h.players.find(p=>p.name===name)?.history||[]).filter(v=>Number(v)===Number(h.roundSum||360)).length,0);
+                const opponents = {}; matches.forEach(h=>{ if(h.winner===name) (h.players||[]).filter(p=>p.name!==name).forEach(p=>opponents[p.name]=(opponents[p.name]||0)+1); });
+                const bestOpponent=Object.entries(opponents).sort((a,b)=>b[1]-a[1])[0];
+                const roundSum = activePlayer && state.active.roundSum || (matches.length && matches[matches.length-1].roundSum) || 360;
+                const form = !recent.length ? '—' : (recent.reduce((a,b)=>a+Number(b||0),0)/recent.length >= roundSum/4 ? 'Hot 🔥' : 'Cold 🧊');
+                document.getElementById('report-details').innerHTML = `Local completed matches: ${matches.length}<br>Wins: ${wins} (${matches.length ? Math.round(wins / matches.length * 100) : 0}%)<br>Round average: ${scores.length ? (scores.reduce((a,b) => a + Number(b || 0), 0) / scores.length).toFixed(1) : '—'}<br>Best round: ${scores.length ? Math.max(...scores) : '—'} · 🥚 ${scores.filter(s => Number(s) === 0).length}<br>🔥 Sweeps: ${sweeps}<br>Form: ${form} · Last ${recent.length} rounds: ${recent.map(Number).join(', ') || '—'}<br>Most wins against: ${bestOpponent ? esc(bestOpponent[0])+' ('+bestOpponent[1]+')' : '—'}`;
             }
             select.onchange = update; update();
         }
         function scoreCalculator() {
             const g = state.active;
             if (!g) { openModal('🧮','Score calculator','Start or join a match first.',[{text:'Close'}]); return; }
-            openModal('🧮','Points to target', g.players.map(p => `<div>${esc(p.name)}: <b>${Math.max(0, g.target - p.total)}</b> remaining</div>`).join(''), [{text:'Close'}]);
+            openModal('🧮','Points to target', g.players.map(p => `<div>${esc(p.name)}: <b>${Math.max(0, g.target - p.total)}</b> remaining · keep below ${Math.max(0, g.target - p.total)} to stop reaching target</div>`).join(''), [{text:'Close'}]);
         }
         function dealerToss() {
             const g = state.active;
             if (!g || !g.players.length) { openModal('🎲','Dealer toss','Start or join a match first.',[{text:'Close'}]); return; }
-            const player = g.players[Math.floor(Math.random() * g.players.length)];
-            openModal('🃏','Dealer toss', `${esc(player.name)} deals first!`, [{text:'Close'}]);
+            if (state.matchAccess !== 'edit') { openModal('🎲','Dealer toss','An editor can choose the dealer.',[{text:'Close'}]); return; }
+            const index = Math.floor(Math.random() * g.players.length), player = g.players[index];
+            // Offset by the current round so the chosen player deals this round.
+            g.dealerStart = (index - g.players[0].history.length % g.players.length + g.players.length) % g.players.length;
+            g.rev = (g.rev || 0) + 1; state.dirty = true; saveState(); renderGame(false); syncToServer(true);
+            openModal('🎲','Dealer toss', `<span class="toss-spin">🃏</span><br>${esc(player.name)} deals this round!`, [{text:'Close'}]);
         }
         async function shareInvite() {
             const g = state.active;
@@ -1513,11 +1566,14 @@
             const chips = document.querySelectorAll('#game-board .player-chip');
             chips.forEach((chip,i) => {
                 const p = sorted[i];
+                if (i === 0 && p.total > 0) chip.classList.add('leader');
+                if (p.history.length && p.last === 0) chip.classList.add('duck');
                 if (i === 0 && p.total > 0) chip.querySelector('.player-name-small').insertAdjacentHTML('afterbegin','👑 ');
                 const remaining = g.target - p.total;
+                if (remaining > 0 && remaining <= g.roundSum) chip.classList.add('match-point');
                 if (remaining > 0 && remaining <= g.roundSum) chip.insertAdjacentHTML('beforeend', `<div class="prob-badge">🚨 ${remaining} to win</div>`);
                 if (p.history.length && p.last === g.roundSum) chip.insertAdjacentHTML('beforeend','<div class="prob-badge">🔥 Full sweep!</div>');
-                if (p.history.length && p.last === 0) chip.insertAdjacentHTML('beforeend','<div class="prob-badge">🥚 Duck</div>');
+                if (p.history.length && p.last === 0) { const streak = [...p.history].reverse().findIndex(x => Number(x) !== 0); const ducks = streak < 0 ? p.history.length : streak; chip.insertAdjacentHTML('beforeend', `<div class="prob-badge">🥚 ${ducks >= 3 ? 'Hat-trick ducks!' : 'Duck'}</div>`); }
             });
         }
         function celebrate() {
@@ -1532,11 +1588,130 @@
             handle.addEventListener('pointerup', e => { if (!start) return; if(moved) { orb.style.left=(e.clientX < innerWidth/2 ? 8 : Math.max(8,innerWidth-60))+'px'; orb.style.alignItems=e.clientX < innerWidth/2 ? 'flex-start':'flex-end'; } else { actions.hidden=!actions.hidden; handle.setAttribute('aria-expanded', String(!actions.hidden)); } start=null; });
         }
 
+        function animateBoardChanges(oldCards, isBN) {
+            if (!oldCards.size || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            document.querySelectorAll('#game-board .player-chip').forEach(el => {
+                const old = oldCards.get(el.dataset.playerId); if (!old) return;
+                const rect=el.getBoundingClientRect(), dx=old.rect.left-rect.left, dy=old.rect.top-rect.top;
+                if ((dx || dy) && el.animate) el.animate([{transform:`translate(${dx}px,${dy}px)`},{transform:'translate(0,0)'}],{duration:400,easing:'ease-out'});
+                const target=Number(el.dataset.score), score=el.querySelector('.score-val');
+                if (!Number.isFinite(old.score) || target===old.score || !score) return;
+                const start=performance.now();
+                function tick(now) { if (!score.isConnected) return; const t=Math.min(1,(now-start)/500), n=Math.round(old.score+(target-old.score)*(1-Math.pow(1-t,3))); score.textContent=isBN?toBN(n):String(n); if(t<1)requestAnimationFrame(tick); }
+                requestAnimationFrame(tick);
+            });
+        }
+        function showVictory(g,winner) {
+            const sorted=[...g.players].sort((a,b)=>b.total-a.total);
+            const podium='<div class="podium">'+sorted.slice(0,3).map((p,i)=>`<div>${['🥇','🥈','🥉'][i]}<br><b>${esc(p.name)}</b><br>${Number(p.total)||0}</div>`).join('')+'</div>';
+            const record=state.history.find(h=>h.matchId===g.matchId) || {matchId:g.matchId,matchName:g.matchName,winner:winner.name,date:Date.now(),target:g.target,roundSum:g.roundSum,players:g.players.map(p=>({...p,history:[...p.history]}))};
+            openModal('🏆', winner.name+' Won!', podium, [
+                {text:'📸 Share scorecard',cb:()=>shareScorecard(record)},
+                {text:'🔄 Rematch',cb:()=>prepareRematch(record)},
+                {text:'📊 Dashboard',cb:()=>showView('dashboard')}
+            ]);
+        }
+
+        function viewerUrl() {
+            const url = new URL(location.href); url.search = ''; url.hash = '';
+            url.searchParams.set('join', state.active.matchId); return url.href;
+        }
+        function showInviteQR() {
+            if (!state.active) { openModal('📷','Viewer QR','Start or join a match first.',[{text:'Close'}]); return; }
+            try {
+                const qr = qrcode(0, 'M'); qr.addData(viewerUrl()); qr.make();
+                openModal('📷','Viewer QR', `<div style="background:white;padding:12px;display:inline-block">${qr.createSvgTag({cellSize:4,margin:8})}</div><br>Scan to join as a viewer. PIN is not included.<br><small>${esc(viewerUrl())}</small>`, [{text:'Close'}]);
+            } catch(e) { openModal('📷','Viewer QR','QR could not be generated. Use Share viewer link instead.',[{text:'Close'}]); }
+        }
+        async function shareScorecard(h) {
+            const canvas = document.createElement('canvas'); canvas.width = 1000; canvas.height = 320 + h.players.length * 90;
+            const c = canvas.getContext('2d'); c.fillStyle='#111c37'; c.fillRect(0,0,canvas.width,canvas.height);
+            c.fillStyle='#fff'; c.font='bold 48px sans-serif'; c.fillText('HAZARIVAI • SCORECARD',45,75,910);
+            c.fillStyle='#fbbf24'; c.font='bold 38px sans-serif'; c.fillText('Winner: '+h.winner,45,145,910);
+            c.fillStyle='#cbd5e1'; c.font='25px sans-serif'; c.fillText(new Date(h.date).toLocaleString(),45,195,910);
+            [...h.players].sort((a,b)=>b.total-a.total).forEach((p,i) => {
+                const y=270+i*90; c.fillStyle='#26385c'; c.fillRect(40,y-45,920,68); c.fillStyle='#fff'; c.font='bold 30px sans-serif';
+                c.textAlign='left'; c.fillText((i+1)+'. '+p.name,60,y,700); c.textAlign='right'; c.fillText(String(p.total),930,y); c.textAlign='left';
+            });
+            canvas.toBlob(async blob => {
+                if (!blob) { openModal('📸','Scorecard','Unable to create image.',[{text:'Close'}]); return; }
+                const file = new File([blob], 'hazarivai-scorecard.png', {type:'image/png'});
+                try { if (navigator.canShare && navigator.canShare({files:[file]})) { await navigator.share({files:[file], title:'HazariVai scorecard'}); return; } }
+                catch(e) { if (e.name === 'AbortError') return; }
+                const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=file.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),60000);
+            }, 'image/png');
+        }
+        function seriesSummary() {
+            const today = new Date().toDateString();
+            const matches = state.history.filter(h => new Date(h.date).toDateString() === today);
+            if (!matches.length) { openModal('🏆','Today’s series','No completed matches on this device today.',[{text:'Close'}]); return; }
+            const players = new Map();
+            matches.forEach(h => (h.players || []).forEach(p => { const item=players.get(p.name)||{name:p.name,wins:0,points:0,matches:0}; item.matches++; item.points+=Number(p.total)||0; if(h.winner===p.name)item.wins++; players.set(p.name,item); }));
+            const rows=[...players.values()].sort((a,b)=>b.wins-a.wins||b.points-a.points);
+            openModal('🏆','Today’s series', `<small>Local matches today: ${matches.length}</small><br><br>`+rows.map((p,i)=>`<div>${i+1}. <b>${esc(p.name)}</b> — ${p.wins} wins · ${p.points} points · ${p.matches} matches</div>`).join(''),[{text:'Close'}]);
+        }
+        async function extrasRequest(data) {
+            const response = await fetch('./api/extras.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data),cache:'no-store'});
+            if (!response.ok) throw new Error('Feature unavailable'); return response.json();
+        }
+        async function cloudLeaderboard() {
+            openModal('🌐','Cloud leaderboard','Loading…',[{text:'Close'}]);
+            try {
+                const data=await extrasRequest({action:'leaderboard'});
+                if (document.getElementById('modal-title').textContent !== 'Cloud leaderboard') return;
+                const rows=data.players || [];
+                document.getElementById('modal-desc').innerHTML = '<small>Public finished matches (including legacy games at target); players are grouped by exact name.</small><br><br>' + (rows.slice(0,50).map((p,i)=>`<div>${i+1}. <b>${esc(p.name)}</b> — ${p.wins} wins / ${p.matches} games · ${p.points} pts · 🔥 ${p.sweeps} · 🥚 ${p.ducks}</div>`).join('') || 'No finished matches yet.');
+            } catch(e) { if(document.getElementById('modal-title').textContent === 'Cloud leaderboard') document.getElementById('modal-desc').textContent='Could not load leaderboard. Check server connection.'; }
+        }
+        const reactionLabels={fire:'🔥 Full sweep!',duck:'🥚 Duck alert!',laugh:'😂 Nice try!',clap:'👏 Well played!'};
+        let reactionMatch=null, reactionCursor=null, reactionPolling=false, reactionSendAt=0; const ownReactionIds = new Set();
+        function reactionMenu() {
+            if (!state.active) { openModal('🎭','Reactions','Start or join a match first.',[{text:'Close'}]); return; }
+            openModal('🎭','Send a reaction','Everyone viewing this match can see it.', Object.keys(reactionLabels).map(k=>({text:reactionLabels[k],cb:()=>sendReaction(k)})).concat([{text:'Close'}]));
+        }
+        function displayReaction(kind) {
+            const text=reactionLabels[kind]; if(!text)return;
+            const el=document.createElement('div'); el.className='score-burst'; el.textContent=text; el.style.left='35%'; el.style.top='30%'; document.body.appendChild(el); setTimeout(()=>el.remove(),1600);
+            if (state.autoAnn && (!window.speechSynthesis || !window.speechSynthesis.speaking)) speakUtterance(state.lang === 'bn' ? ({fire:'দারুণ, ফুল সুইপ!',duck:'আন্ডা অ্যালার্ট!',laugh:'আরেকটু চেষ্টা করো!',clap:'সাবাশ!'})[kind] : text.replace(/^[^a-zA-Z]+/, ''));
+        }
+        async function sendReaction(kind) {
+            if(!state.active || Date.now()-reactionSendAt<1500)return; reactionSendAt=Date.now();
+            try { const result = await extrasRequest({action:'reaction_send',match_id:state.active.matchId,kind}); ownReactionIds.add(result.id); displayReaction(kind); await pollReactions(); setTimeout(() => ownReactionIds.delete(result.id), 60000); }
+            catch(e) { openModal('🎭','Reaction unavailable','Check your connection and ensure the reactions database migration has been run.',[{text:'Close'}]); }
+        }
+        async function pollReactions() {
+            if(!state.active || document.hidden || reactionPolling)return;
+            const id=state.active.matchId;
+            if(reactionMatch!==id){reactionMatch=id; reactionCursor=null;}
+            reactionPolling=true;
+            try {
+                const data=await extrasRequest({action:'reaction_poll',match_id:id,after:reactionCursor});
+                if(reactionMatch!==id || !state.active || state.active.matchId!==id)return;
+                reactionCursor=data.cursor; (data.events||[]).forEach(e=>{ if (!ownReactionIds.has(e.id)) displayReaction(e.kind); });
+            } catch(e) { /* optional feature; keep scores working offline */ }
+            finally { reactionPolling=false; }
+        }
+        function animateRound(scores,g) {
+            if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            document.querySelectorAll('#game-board .player-chip').forEach((chip,i)=>{
+                const sorted=[...g.players].sort((a,b)=>b.total-a.total); const player=sorted[i]; const index=g.players.indexOf(player); const rect=chip.getBoundingClientRect();
+                const el=document.createElement('span'); el.className='score-burst'; el.textContent='+'+scores[index]; el.style.left=(rect.left+rect.width/2)+'px'; el.style.top=(rect.top+20)+'px'; document.body.appendChild(el); setTimeout(()=>el.remove(),1600);
+            });
+        }
+        setInterval(pollReactions, 3000);
+
         togglePlayerInputs();
         load();
         initOrb();
         const inviteId = new URL(location.href).searchParams.get('join');
-        if (inviteId) document.getElementById('join-id').value = inviteId;
+        if (inviteId) {
+            document.getElementById('join-id').value = inviteId;
+            const cleanUrl = new URL(location.href); cleanUrl.searchParams.delete('join'); history.replaceState(null, '', cleanUrl.href);
+            if (!state.active) joinMatch();
+            else if (state.active.matchId !== inviteId.toUpperCase()) openModal('📱','Viewer invitation', 'Open the invited match? This replaces the current match on this device.', [
+                {text:'Open viewer',cb:()=>{ if (state.dirty) openModal('🔄','Sync pending','Wait for the current match to sync before switching.',[{text:'Close'}]); else joinMatch(); }}, {text:'Cancel'}
+            ]);
+        }
     </script>
 </body>
 </html>

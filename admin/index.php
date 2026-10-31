@@ -56,6 +56,32 @@ if (isset($_POST['action'])) {
         exit;
     }
 
+    // Only remove clearly unfinished inactive matches, and only if unchanged since inspection.
+    if ($action === 'cleanup_stale') {
+        header('Content-Type: application/json; charset=utf-8');
+        $res = $conn->query("SELECT id, game_data, updated_at FROM matches WHERE status='running' AND updated_at < NOW() - INTERVAL 24 HOUR");
+        if (!$res) { http_response_code(500); echo json_encode(['error'=>'Database error']); exit; }
+        $items = [];
+        while ($row = $res->fetch_assoc()) {
+            $g = json_decode($row['game_data'], true);
+            if (!is_array($g) || empty($g['players']) || !is_array($g['players'])) continue;
+            $target = (int)($g['target'] ?? 1000);
+            $top = max(array_map(function($p) { return (int)($p['total'] ?? 0); }, $g['players']));
+            if (($g['status'] ?? '') === 'finished' || ($target > 0 && $top >= $target)) continue;
+            $items[] = $row;
+        }
+        if (($_POST['confirm'] ?? '') !== 'yes') { echo json_encode(['count'=>count($items)]); exit; }
+        $del = $conn->prepare("DELETE FROM matches WHERE id=? AND status='running' AND updated_at=? AND game_data=? AND updated_at < NOW() - INTERVAL 24 HOUR");
+        if (!$del) { http_response_code(500); echo json_encode(['error'=>'Database error']); exit; }
+        $count = 0;
+        foreach ($items as $row) {
+            $id=(int)$row['id']; $updated=$row['updated_at']; $game=$row['game_data'];
+            $del->bind_param('iss', $id, $updated, $game);
+            if ($del->execute()) $count += $del->affected_rows;
+        }
+        $del->close(); echo json_encode(['count'=>$count]); exit;
+    }
+
     if ($action === 'send_message') {
         $mid = isset($_POST['mid']) ? (string)$_POST['mid'] : '';
         $msg = isset($_POST['msg']) ? (string)$_POST['msg'] : '';
@@ -198,6 +224,7 @@ if ($annRes && ($annRow = $annRes->fetch_assoc())) {
         </div>
         <div style="display:flex; gap:8px; flex:1; max-width:440px; justify-content:flex-end; flex-wrap:wrap;">
             <input type="text" id="admin-search" oninput="onSearchChange()" placeholder="🔍 Search player or Match ID..." style="flex:1; min-width:180px; background:#fff;">
+            <button type="button" class="btn btn-soft" onclick="cleanupStale()">🧹 Clean inactive</button>
 
         </div>
     </div>
@@ -244,6 +271,19 @@ if ($annRes && ($annRow = $annRes->fetch_assoc())) {
         function onSearchChange() {
             clearTimeout(searchTimer);
             searchTimer = setTimeout(() => loadMatches(true), 220);
+        }
+
+        async function cleanupStale() {
+            try {
+                const request = async (confirmDelete) => {
+                    const response = await fetch('index.php', {method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'action=cleanup_stale' + (confirmDelete ? '&confirm=yes' : '')});
+                    if (!response.ok) throw new Error('Cleanup failed'); return response.json();
+                };
+                const preview = await request(false);
+                if (!preview.count) { showToast('No inactive unfinished matches over 24 hours'); return; }
+                if (!confirm(`Permanently delete up to ${preview.count} unfinished matches inactive for over 24 hours? This cannot be undone.`)) return;
+                const result = await request(true); showToast(`Removed ${result.count} inactive match(es)`); loadMatches(true);
+            } catch (e) { showToast('Cleanup failed'); }
         }
 
         function sendAnn() {
