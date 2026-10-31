@@ -19,7 +19,7 @@
             --p1: #4361ee; --p2: #f72585; --p3: #f8961e; --p4: #7209b7;
         }
         [data-theme="dark"] {
-            --bg: #121212; --card-bg: #1e1e1e; --primary: #60a5fa; --primary-light: rgba(96, 165, 250, 0.1);
+            --bg: #121212; --card-bg: #1e1e1e; --primary: #60a5fa; --primary-light: rgba(96, 165, 250, 0.12);
             --text: #e0e0e0; --text-dim: #9ca3af; --border: #333333;
         }
         [data-theme="forgreen"] {
@@ -47,7 +47,7 @@
         .input-group { margin-bottom: 15px; }
         .input-group label { display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-dim); margin-bottom: 6px; }
         input, select, textarea { width: 100%; border: 2px solid var(--border); border-radius: 16px; padding: 14px; font-size: 1rem; outline: none; background: var(--bg); color: var(--text); }
-        input:focus { border-color: var(--primary); background: var(--card-bg); }
+        input:focus, textarea:focus { border-color: var(--primary); background: var(--card-bg); }
 
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card-bg); display: flex; justify-content: space-around; padding: 12px 0; box-shadow: 0 -4px 15px rgba(0,0,0,0.04); z-index: 1000; border-top: 1px solid var(--border); }
         .nav-item { display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; color: var(--text-dim); cursor: pointer; gap: 4px; opacity: 0.7; }
@@ -75,16 +75,27 @@
         .mode-view { background: #fee2e2; color: #b91c1c; }
         #match-chart-container { background: var(--card-bg); padding: 15px; border-radius: 24px; margin-top: 20px; display: none; border: 1px solid var(--border); }
 
+        /* Custom Speech Builder Styles */
+        .custom-builder { background: var(--bg); border: 1px solid var(--border); border-radius: 18px; padding: 14px; margin-top: 8px; }
+        .tag-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+        .tag-chip { background: var(--card-bg); color: var(--primary); border: 1px solid var(--border); border-radius: 10px; padding: 5px 9px; font-size: 0.72rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+        .tag-chip:active { transform: scale(0.96); background: var(--primary-light); }
+        .preset-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+        .preset-btn { background: var(--primary-light); color: var(--primary); border-radius: 10px; padding: 6px 10px; font-size: 0.72rem; font-weight: 700; cursor: pointer; border: none; }
+        .preview-box { background: var(--card-bg); border-left: 4px solid var(--primary); border-radius: 12px; padding: 10px 12px; margin-top: 10px; font-size: 0.82rem; line-height: 1.45; color: var(--text); }
+
         /* Mascot Styles */
         .mascot-container { position: fixed; bottom: 85px; left: 15px; z-index: 2000; display: none; align-items: center; pointer-events: none; flex-direction: column; touch-action: none; }
         .mascot-wrapper { position: relative; width: 85px; height: 115px; pointer-events: auto; cursor: grab; animation: mascotFloat 4s infinite ease-in-out; }
-        .ace-body { width: 100%; height: 100%; background: #fff; border: 2px solid #222; border-radius: 12px; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .ace-body { width: 100%; height: 100%; background: #fff; border: 2px solid #222; border-radius: 12px; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: flex; flex-direction: column; align-items: center; justify-content: center; color: #111; }
         .robot-face { width: 60px; height: 42px; background: #1a1a1a; border-radius: 14px; position: relative; border: 2px solid #333; }
         .mouth-line { width: 28px; height: 4px; background: #00ff00; position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); border-radius: 4px; box-shadow: 0 0 6px #00ff00; transition: 0.3s; }
         .is-speaking .mouth-line { animation: talkSync 0.15s infinite; }
         @keyframes talkSync { 0%, 100% { height: 4px; } 50% { height: 12px; } }
-        .speech-bubble { background: white; border: 2px solid var(--primary); border-radius: 20px; padding: 12px 18px; font-size: 0.85rem; font-weight: 700; position: absolute; bottom: 140px; left: 50%; transform: translateX(-50%); min-width: 150px; display: none; text-align: center; box-shadow: var(--shadow); z-index: 2001; pointer-events: none; }
+        .speech-bubble { background: white; color: #1f2937; border: 2px solid var(--primary); border-radius: 20px; padding: 12px 18px; font-size: 0.85rem; font-weight: 700; position: absolute; bottom: 140px; left: 50%; transform: translateX(-50%); min-width: 170px; max-width: 260px; display: none; text-align: center; box-shadow: var(--shadow); z-index: 2001; pointer-events: none; }
         @keyframes mascotFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+        .speech-toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--card-bg); color: var(--text); border: 2px solid var(--primary); padding: 10px 18px; border-radius: 18px; font-size: 0.82rem; font-weight: 700; box-shadow: var(--shadow); z-index: 3500; max-width: 90%; text-align: center; display: none; }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); align-items: center; justify-content: center; z-index: 3000; padding: 24px; }
         .modal-content { background: var(--card-bg); padding: 32px; border-radius: 32px; width: 100%; max-width: 400px; text-align: center; animation: zoomIn 0.2s ease-out; }
@@ -99,6 +110,8 @@
         <marquee id="ann-text" style="font-weight:bold;"></marquee>
     </div>
 
+    <div id="speech-toast" class="speech-toast"></div>
+
     <!-- Dashboard -->
     <div id="view-dashboard" class="view container active">
         <h1 style="margin-bottom: 24px; font-size: 1.8rem;">HazariVai</h1>
@@ -108,8 +121,8 @@
             <div style="display:grid; gap:10px;">
                 <input type="text" id="join-id" placeholder="Match ID (e.g. HZ-1234)">
                 <div style="display:flex; gap:8px;">
-                    <input type="number" id="join-pin" placeholder="PIN" style="flex:1" inputmode="numeric">
-                    <button class="btn-primary" onclick="joinMatch()">Join</button>
+                    <input type="text" id="join-pin" placeholder="PIN (for Edit)" style="flex:1" inputmode="numeric">
+                    <button class="btn-primary" onclick="joinMatch()" data-i18n="joinBtn">Join</button>
                 </div>
             </div>
         </div>
@@ -152,8 +165,8 @@
                 <div id="match-info-display" style="font-size: 0.65rem; color: var(--text-dim); font-weight: 700; margin-top: 2px;"></div>
             </div>
             <div style="display: flex; gap: 8px;">
-                <button class="bolt-btn" style="width:36px; height:36px; border-radius:10px; font-size:1rem;" onclick="openEditModal()">⚙️</button>
-                <button class="bolt-btn" style="width:36px; height:36px; border-radius:10px; font-size:1rem;" onclick="announceScores()">🔊</button>
+                <button class="bolt-btn" style="width:36px; height:36px; border-radius:10px; font-size:1rem;" onclick="openEditModal()" title="Settings / Unlock Edit">⚙️</button>
+                <button class="bolt-btn" style="width:36px; height:36px; border-radius:10px; font-size:1rem;" onclick="announceScores()" title="Announce">🔊</button>
                 <button class="btn-danger btn-mini" onclick="confirmExit()" data-i18n="exit">Exit</button>
             </div>
         </div>
@@ -167,14 +180,14 @@
         <div id="editor-controls">
             <div class="card" style="padding: 15px; margin-bottom: 15px; border: 2px solid var(--primary-light);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <h3 style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase;">Quick Input</h3>
+                    <h3 style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase;" data-i18n="quickInput">Quick Input</h3>
                     <span id="sync-time" style="font-size: 0.6rem; color: var(--text-dim);">Never synced</span>
                 </div>
                 <div id="score-inputs"></div>
                 <div id="game-warn" style="font-size: 0.75rem; text-align: center; margin: 10px 0; font-weight: 700;"></div>
                 <div style="display: flex; gap: 10px;">
-                    <button class="btn-outline" style="flex:1" onclick="confirmUndo()">Undo</button>
-                    <button class="btn-primary" style="flex:2" onclick="strictSave()">Save Round</button>
+                    <button class="btn-outline" style="flex:1" onclick="confirmUndo()" data-i18n="undo">Undo</button>
+                    <button class="btn-primary" style="flex:2" onclick="strictSave()" data-i18n="saveRound">Save Round</button>
                 </div>
             </div>
         </div>
@@ -198,13 +211,63 @@
                 <input type="checkbox" id="show-chart-toggle" onchange="upShowChart()" style="width: 20px; height: 20px;">
             </div>
             
-            <h3 style="font-size: 0.9rem; color: var(--text-dim); margin: 25px 0 15px 0; text-transform: uppercase;">Announcer Settings</h3>
+            <h3 style="font-size: 0.9rem; color: var(--text-dim); margin: 25px 0 15px 0; text-transform: uppercase;" data-i18n="annHeader">Announcer Settings</h3>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <label style="font-weight: 700; color: var(--text-dim);" data-i18n="autoAnn">Auto Announce</label>
                 <input type="checkbox" id="auto-ann-toggle" onchange="upAutoAnn()" style="width: 20px; height: 20px;">
             </div>
-            <div class="input-group"><label data-i18n="annStyle">Announcer Style</label><select id="speech-mode-sel" onchange="upSpeechMode()"><option value="standard">Standard</option><option value="fast">Fast / Minimal</option><option value="friendly">Friendly</option><option value="slang">Slang / Sarcastic</option><option value="custom">Custom Template</option></select></div>
-            <div class="input-group" id="custom-speech-area" style="display:none;"><label data-i18n="customTemp">Custom Template</label><textarea id="custom-speech-temp" oninput="upCustomTemp()" style="min-height:80px;"></textarea></div>
+            <div class="input-group">
+                <label data-i18n="annStyle">Announcer Style</label>
+                <select id="speech-mode-sel" onchange="upSpeechMode()">
+                    <option value="standard">Standard</option>
+                    <option value="fast">Fast / Minimal</option>
+                    <option value="friendly">Friendly</option>
+                    <option value="slang">Slang / Sarcastic</option>
+                    <option value="custom">Custom Template</option>
+                </select>
+            </div>
+
+            <!-- Enhanced Custom Template Builder -->
+            <div id="custom-speech-area" class="custom-builder" style="display:none;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <label style="font-size:0.85rem; font-weight:800; color:var(--primary);" data-i18n="customTemp">Custom Template</label>
+                    <button type="button" class="btn-primary btn-mini" onclick="testCustomSpeech()" data-i18n="testVoiceBtn">🔊 Test Voice</button>
+                </div>
+
+                <div style="font-size:0.74rem; color:var(--text-dim); margin-bottom:8px;" data-i18n="customHelp">
+                    Tap any tag below to insert it at the cursor, or pick a ready preset. Separate multiple lines with || for random lines!
+                </div>
+
+                <div class="preset-row">
+                    <button type="button" class="preset-btn" onclick="applyCustomPreset('bn_fun')">🔥 মজার বাংলা</button>
+                    <button type="button" class="preset-btn" onclick="applyCustomPreset('bn_std')">📢 স্ট্যান্ডার্ড বাংলা</button>
+                    <button type="button" class="preset-btn" onclick="applyCustomPreset('en_std')">🎙️ English</button>
+                </div>
+
+                <textarea id="custom-speech-temp" oninput="upCustomTemp()" style="min-height:90px; font-size:0.9rem; line-height:1.4;" placeholder="{p1} ভাই {s1} পয়েন্ট নিয়ে এগিয়ে আছে!"></textarea>
+
+                <div class="tag-chips" id="custom-tag-chips">
+                    <button type="button" class="tag-chip" onclick="insertCustomTag('{p1}')">🥇 ১ম নাম <code>{p1}</code></button>
+                    <button type="button" class="tag-chip" onclick="insertCustomTag('{s1}')">🥇 ১ম স্কোর <code>{s1}</code></button>
+                    <button type="button" class="tag-chip" onclick="insertCustomTag('{p2}')">🥈 ২য় নাম <code>{p2}</code></button>
+                    <button type="button" class="tag-chip" onclick="insertCustomTag('{s2}')">🥈 ২য় স্কোর <code>{s2}</code></button>
+                    <button type="button" class="tag-chip" onclick="insertCustomTag('{p3}')">🥉 ৩য় নাম <code>{p3}</code></button>
+                    <button type="button" class="tag-chip" onclick="insertCustomTag('{s3}')">🥉 ৩য় স্কোর <code>{s3}</code></button>
+                    <button type="button" class="tag-chip" onclick="insertCustomTag('{p4}')">৪র্থ নাম <code>{p4}</code></button>
+                    <button type="button" class="tag-chip" onclick="insertCustomTag('{s4}')">৪র্থ স্কোর <code>{s4}</code></button>
+                    <button type="button" class="tag-chip" onclick="insertCustomTag('{last}')">🐢 শেষ নাম <code>{last}</code></button>
+                    <button type="button" class="tag-chip" onclick="insertCustomTag('{sl}')">🐢 শেষ স্কোর <code>{sl}</code></button>
+                    <button type="button" class="tag-chip" onclick="insertCustomTag('{diff}')">📊 ব্যবধান <code>{diff}</code></button>
+                    <button type="button" class="tag-chip" onclick="insertCustomTag('{need}')">🎯 জিততে বাকি <code>{need}</code></button>
+                    <button type="button" class="tag-chip" onclick="insertCustomTag('{round}')">🔄 রাউন্ড <code>{round}</code></button>
+                    <button type="button" class="tag-chip" onclick="insertCustomTag('{all}')">📋 সব স্কোর <code>{all}</code></button>
+                </div>
+
+                <div class="preview-box">
+                    <div style="font-size:0.68rem; font-weight:800; color:var(--primary); text-transform:uppercase; margin-bottom:3px;" data-i18n="livePreview">Live Preview</div>
+                    <div id="custom-speech-preview"></div>
+                </div>
+            </div>
 
             <h3 style="font-size: 0.9rem; color: var(--text-dim); margin: 25px 0 15px 0; text-transform: uppercase;">Interactive Character</h3>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
@@ -256,14 +319,17 @@
             en: { 
                 allTimeWins:"Win Stats", pastHistory:"Match History", startNewGame:"Start New Game", newGameSetup:"Match Setup", 
                 targetScore:"Win Target", roundTotal:"Round Sum", numPlayers:"Players", launchGame:"Launch Match", 
-                activeMatch:"In Play", exit:"Exit", addScores:"Enter Round Results", undo:"Undo", saveRound:"Save Round", 
+                activeMatch:"In Play", exit:"Exit", addScores:"Enter Round Results", quickInput:"Quick Input", undo:"Undo", saveRound:"Save Round", 
                 navDash:"Stats", navGame:"Play", navSettings:"Settings", wins: "Wins", 
                 p1Placeholder: "Player 1", p2Placeholder: "Player 2", p3Placeholder: "Player 3", p4Placeholder: "Player 4",
                 winProb: "Win Chance", cancel: "Cancel", matchEnded: "Match Finished",
-                joinMatch: "Join Match", viewMode: "Viewer", editMode: "Editor", chartTitle: "Live Progress",
+                joinMatch: "Join Match", joinBtn: "Join", viewMode: "Viewer", editMode: "Editor", chartTitle: "Live Progress",
                 showChart: "Show Chart", visuals: "Visuals", language: "Language", theme: "Theme",
-                appStatus: "App Status", autoAnn: "Auto Announce", annStyle: "Speech Style", mascot: "Mascot",
-                mascotStyle: "Personality", customTemp: "Custom Template", wipeData: "Wipe All Data", settings: "Settings", 
+                appStatus: "App Status", annHeader: "Announcer Settings", autoAnn: "Auto Announce", annStyle: "Speech Style", mascot: "Mascot",
+                mascotStyle: "Personality", customTemp: "Custom Voice Template",
+                customHelp: "Tap any tag below to insert it into your dialogue, or choose a preset. Use || between sentences for random variations!",
+                testVoiceBtn: "🔊 Test Voice", livePreview: "Live Preview",
+                wipeData: "Wipe All Data", settings: "Settings", 
                 ok: "OK", yes: "Yes", no: "No", errTitle: "Score Mismatch", errDesc: "Total is {s}, must be {r}.",
                 undoTitle: "Undo Round?", undoDesc: "Delete last round?", exitTitle: "Exit Match?", exitDesc: "Progress saved locally.",
                 shareText: "🏆 HazariVai: {w} won with {t} points!"
@@ -271,80 +337,366 @@
             bn: { 
                 allTimeWins:"সর্বমোট জয়", pastHistory:"পুরানো ম্যাচ", startNewGame:"নতুন গেম শুরু করুন", newGameSetup:"গেম সেটিংস", 
                 targetScore:"টার্গেট স্কোর", roundTotal:"রাউন্ডের মোট", numPlayers:"প্লেয়ার", launchGame:"গেম শুরু করুন", 
-                activeMatch:"চলমান ম্যাচ", exit:"বন্ধ", addScores:"স্কোর দিন", undo:"ভুল সংশোধন", saveRound:"স্কোর জমা দিন", 
+                activeMatch:"চলমান ম্যাচ", exit:"বন্ধ", addScores:"স্কোর দিন", quickInput:"স্কোর ইনপুট", undo:"ভুল সংশোধন", saveRound:"স্কোর জমা দিন", 
                 navDash:"হিসাব", navGame:"গেম", navSettings:"সেটিংস", wins: "জয়", 
                 p1Placeholder: "প্লেয়ার ১", p2Placeholder: "প্লেয়ার ২", p3Placeholder: "প্লেয়ার ৩", p4Placeholder: "প্লেয়ার ৪",
                 winProb: "জেতার সম্ভাবনা", cancel: "বাতিল", matchEnded: "ম্যাচ শেষ",
-                joinMatch: "ম্যাচে যোগ দিন", viewMode: "ভিউয়ার", editMode: "এডিটর", chartTitle: "লাইভ চার্ট",
+                joinMatch: "ম্যাচে যোগ দিন", joinBtn: "জয়েন", viewMode: "ভিউয়ার", editMode: "এডিটর", chartTitle: "লাইভ চার্ট",
                 showChart: "চার্ট দেখান", visuals: "চাক্ষুষ", language: "ভাষা", theme: "থিম",
-                appStatus: "অ্যাপের অবস্থা", autoAnn: "অটো অ্যানাউন্স", annStyle: "ঘোষণার ধরণ", mascot: "ম্যাসকট",
-                mascotStyle: "আচরণ", customTemp: "কাস্টম টেমপ্লেট", wipeData: "সব ডেটা মুছুন", settings: "সেটিংস", 
+                appStatus: "অ্যাপের অবস্থা", annHeader: "ভয়েস অ্যানাউন্সার সেটিংস", autoAnn: "অটো অ্যানাউন্স", annStyle: "ঘোষণার ধরণ", mascot: "ম্যাসকট",
+                mascotStyle: "আচরণ", customTemp: "কাস্টম ভয়েস টেমপ্লেট",
+                customHelp: "নিচের যেকোনো ট্যাগে ট্যাপ করলেই বক্সে বসে যাবে, অথবা রেডিমেড বাটন চাপুন। একাধিক ডায়লগ র‍্যান্ডমলি বলতে মাঝখানে || দিন!",
+                testVoiceBtn: "🔊 টেস্ট করুন", livePreview: "লাইভ প্রিভিউ (এভাবে বলবে)",
+                wipeData: "সব ডেটা মুছুন", settings: "সেটিংস", 
                 ok: "ঠিক আছে", yes: "হ্যাঁ", no: "বাতিল", errTitle: "ভুল হয়েছে", errDesc: "যোগফল {s} হয়েছে, {r} হওয়া আবশ্যক।",
                 undoTitle: "ভুল সংশোধন?", undoDesc: "শেষ রাউন্ড মুছতে চান?", exitTitle: "বন্ধ করবেন?", exitDesc: "স্কোর সেভ থাকবে।",
                 shareText: "🏆 HazariVai: {w} জিতেছে {t} পয়েন্টে!"
             }
         };
 
+        const CUSTOM_PRESETS = {
+            bn_fun: "{p1} ভাই {s1} পয়েন্ট নিয়ে সবার উপরে কোপাইতাছে! ২য় স্থানে {p2} ({s2}), আর সবার শেষে {last} ভাই মাত্র {sl} পয়েন্ট নিয়ে ঘুমাচ্ছে!",
+            bn_std: "রাউন্ড {round} শেষে {p1} {s1} পয়েন্ট নিয়ে এগিয়ে আছে, জিততে আর মাত্র {need} পয়েন্ট বাকি। সব স্কোর: {all}।",
+            en_std: "After round {round}, {p1} leads with {s1} points, needing {need} more to win! {last} trails at {sl}."
+        };
+
         const bnDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
         const enDigits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-        function toBN(str) { return str.toString().split('').map(d => enDigits.indexOf(d) > -1 ? bnDigits[enDigits.indexOf(d)] : d).join(''); }
-        function toEN(str) { return str.toString().split('').map(d => bnDigits.indexOf(d) > -1 ? enDigits[bnDigits.indexOf(d)] : d).join(''); }
+        function toBN(str) { return String(str).split('').map(d => enDigits.indexOf(d) > -1 ? bnDigits[enDigits.indexOf(d)] : d).join(''); }
+        function toEN(str) { return String(str).split('').map(d => bnDigits.indexOf(d) > -1 ? enDigits[bnDigits.indexOf(d)] : d).join(''); }
+        function esc(str) { return String(str ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+        function hasBangla(str) { return /[\u0980-\u09FF]/.test(String(str || '')); }
 
         let state = { 
             active: null, history: [], stats: {}, theme: 'light', lang: 'en', autoAnn: false,
-            speechMode: 'standard', customSpeechTemplate: '{p1} is leading with {s1}.',
+            speechMode: 'standard', customSpeechTemplate: CUSTOM_PRESETS.bn_fun,
             charEnabled: true, charResponseMode: 'fun', showChart: true,
-            syncQueue: [], matchAccess: 'edit'
+            matchAccess: 'edit', dirty: false, syncedOnce: false, recordedMatches: {}
         };
-        let matchChart;
+        let matchChart = null;
+        let isSyncing = false;
+        let pendingPush = false;
+        let availableVoices = [];
+        let speechToastTimer = null;
+
+        // Preload TTS voices for Android/Chrome
+        function refreshVoices() {
+            if ('speechSynthesis' in window) {
+                availableVoices = window.speechSynthesis.getVoices() || [];
+            }
+        }
+        if ('speechSynthesis' in window) {
+            refreshVoices();
+            if (typeof window.speechSynthesis.onvoiceschanged !== 'undefined') {
+                window.speechSynthesis.onvoiceschanged = refreshVoices;
+            }
+        }
 
         function saveState() { localStorage.setItem('forhaz_v8_pro', JSON.stringify(state)); }
         function haptic(type) { if (navigator.vibrate) { if(type==='click') navigator.vibrate(15); else if(type==='win') navigator.vibrate([100,50,100]); } }
-        
+
+        function gameFingerprint(g) {
+            if (!g || !Array.isArray(g.players)) return '';
+            return JSON.stringify({
+                rev: g.rev || 0,
+                status: g.status || 'running',
+                target: g.target,
+                roundSum: g.roundSum,
+                players: g.players.map(p => ({ name: p.name, total: p.total, history: p.history }))
+            });
+        }
+
+        function getMatchWinner(g) {
+            if (!g || !Array.isArray(g.players) || !g.players.length) return null;
+            const sorted = [...g.players].sort((a, b) => b.total - a.total);
+            return sorted[0].total >= g.target ? sorted[0] : null;
+        }
+
+        function recordFinishedMatchOnce(g, winner) {
+            if (!g || !winner) return;
+            if (!state.recordedMatches) state.recordedMatches = {};
+            if (state.recordedMatches[g.matchId]) return;
+            state.recordedMatches[g.matchId] = true;
+            state.history.push({
+                matchId: g.matchId,
+                winner: winner.name,
+                total: winner.total,
+                date: Date.now(),
+                players: g.players.map(p => ({ name: p.name, total: p.total, history: p.history }))
+            });
+            state.stats[winner.name] = (state.stats[winner.name] || 0) + 1;
+        }
+
         function load() {
             const s = localStorage.getItem('forhaz_v8_pro');
-            if(s) state = {...state, ...JSON.parse(s)};
+            if (s) {
+                try { state = { ...state, ...JSON.parse(s) }; } catch (e) {}
+            }
+            if (!state.customSpeechTemplate || !state.customSpeechTemplate.trim()) {
+                state.customSpeechTemplate = state.lang === 'bn' ? CUSTOM_PRESETS.bn_fun : '{p1} is leading with {s1} points!';
+            }
+            if (!state.recordedMatches) state.recordedMatches = {};
+
             document.body.setAttribute('data-theme', state.theme);
             document.getElementById('theme-sel').value = state.theme;
             document.getElementById('lang-sel').value = state.lang;
-            document.getElementById('auto-ann-toggle').checked = state.autoAnn;
-            document.getElementById('show-chart-toggle').checked = state.showChart;
-            document.getElementById('char-toggle').checked = state.charEnabled;
+            document.getElementById('auto-ann-toggle').checked = !!state.autoAnn;
+            document.getElementById('show-chart-toggle').checked = !!state.showChart;
+            document.getElementById('char-toggle').checked = !!state.charEnabled;
             document.getElementById('speech-mode-sel').value = state.speechMode || 'standard';
             document.getElementById('char-mode-sel').value = state.charResponseMode || 'fun';
-            document.getElementById('custom-speech-temp').value = state.customSpeechTemplate || '';
+            document.getElementById('custom-speech-temp').value = state.customSpeechTemplate;
+            document.getElementById('custom-speech-area').style.display = state.speechMode === 'custom' ? 'block' : 'none';
             document.getElementById('mascot-container').style.display = state.charEnabled ? 'flex' : 'none';
             document.getElementById('mascot-settings').style.display = state.charEnabled ? 'block' : 'none';
-            upLang(); renderDash();
-            if(state.active) { showView('game'); syncToServer(); }
-            setInterval(processQueue, 10000);
+
+            upLang();
+            renderDash();
+            updateCustomPreview();
+
+            if (state.active) {
+                showView('game');
+                syncToServer(state.dirty);
+            } else {
+                fetchGlobalAnnouncement();
+            }
+
+            // Live multi-device & viewer sync every 3 seconds
+            setInterval(() => {
+                if (state.active) {
+                    syncToServer(false);
+                }
+            }, 3000);
+
+            window.addEventListener('online', () => {
+                if (state.active) syncToServer(state.dirty);
+            });
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden && state.active) syncToServer(state.dirty);
+            });
+
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('./sw.js').catch(() => {});
+            }
+        }
+
+        function applyAnnouncementBar(msg) {
+            const bar = document.getElementById('announcement-bar');
+            const txt = document.getElementById('ann-text');
+            const clean = (msg || '').trim();
+            if (clean) {
+                txt.textContent = clean;
+                bar.style.display = 'block';
+            } else {
+                txt.textContent = '';
+                bar.style.display = 'none';
+            }
+        }
+
+        async function fetchGlobalAnnouncement() {
+            if (!navigator.onLine) return;
+            try {
+                const res = await fetch('./api/sync.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ match_id: 'GLOBAL', action: 'get_announcement' }),
+                    cache: 'no-store'
+                });
+                const data = await res.json();
+                if (data && data.status === 'success') {
+                    applyAnnouncementBar(data.announcement);
+                }
+            } catch (e) {}
         }
 
         async function syncToServer(force = false) {
-            const g = state.active; if(!g) return;
+            const g = state.active;
+            if (!g) return;
+
             const indicator = document.getElementById('sync-indicator');
             const syncTime = document.getElementById('sync-time');
-            if(!navigator.onLine) { indicator.style.background = '#ef4444'; return; }
+
+            if (force) {
+                state.dirty = true;
+                saveState();
+            }
+
+            if (!navigator.onLine) {
+                indicator.style.background = '#ef4444';
+                return;
+            }
+
+            if (isSyncing) {
+                if (force || state.dirty) pendingPush = true;
+                return;
+            }
+
+            isSyncing = true;
+            const shouldPush = (force || state.dirty) && state.matchAccess === 'edit';
             indicator.style.background = '#fbbf24';
 
-            const payload = { match_id: g.matchId, action: force ? 'push' : 'sync', game_data: g, pin: g.pin };
+            const payload = {
+                match_id: g.matchId,
+                action: shouldPush ? 'push' : 'sync',
+                game_data: shouldPush ? g : null,
+                pin: g.pin || null,
+                base_rev: shouldPush ? (typeof g.serverRev === 'number' ? g.serverRev : null) : null
+            };
+
             try {
-                const res = await fetch('./api/sync.php', { method: 'POST', body: JSON.stringify(payload) });
+                const res = await fetch('./api/sync.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                    cache: 'no-store'
+                });
                 const data = await res.json();
-                if(data.status === 'success') {
+
+                if (data.status === 'success') {
                     indicator.style.background = '#10b981';
-                    syncTime.innerText = 'Synced: ' + new Date().toLocaleTimeString();
-                    if(data.game_data && state.matchAccess === 'view') { state.active = data.game_data; renderGame(); }
+                    if (syncTime) syncTime.innerText = 'Synced: ' + new Date().toLocaleTimeString();
+
+                    applyAnnouncementBar(data.announcement);
+
+                    // Match terminated by Admin
+                    if (data.is_deleted && state.syncedOnce && !shouldPush) {
+                        state.active = null;
+                        state.dirty = false;
+                        saveState();
+                        showView('dashboard');
+                        openModal('🛑', state.lang === 'bn' ? 'ম্যাচ বন্ধ হয়েছে' : 'Match Terminated',
+                            state.lang === 'bn' ? 'অ্যাডমিন প্যানেল থেকে এই ম্যাচটি সমাপ্ত করা হয়েছে।' : 'This match was terminated by the administrator.',
+                            [{ text: i18n[state.lang].ok }]);
+                        return;
+                    }
+
+                    // Admin direct message & remote voice announce
+                    if (data.admin_message) {
+                        openModal('💬', state.lang === 'bn' ? 'অ্যাডমিন মেসেজ' : 'Admin Message', esc(data.admin_message), [{ text: i18n[state.lang].ok }]);
+                    }
+                    if (data.admin_announce_flag === 1) {
+                        setTimeout(() => announceScores(), 150);
+                    }
+
+                    if (!state.active || state.active.matchId !== g.matchId) return;
+
+                    if (data.denied && shouldPush) {
+                        // Editor push denied (PIN mismatch) -> fallback to server state in viewer mode
+                        state.matchAccess = 'view';
+                        state.dirty = false;
+                        if (data.game_data) {
+                            data.game_data.serverRev = data.game_data.rev || 0;
+                            state.active = data.game_data;
+                        }
+                        saveState();
+                        renderGame();
+                        return;
+                    }
+
+                    if (data.conflict && data.game_data) {
+                        // Another Editor device or Admin saved a newer update first; load latest server state
+                        const savedPin = state.active.pin;
+                        const srv = data.game_data;
+                        if (savedPin) srv.pin = savedPin;
+                        srv.serverRev = srv.rev || 0;
+                        state.active = srv;
+                        state.dirty = false;
+                        state.syncedOnce = true;
+                        saveState();
+                        renderGame(true);
+                        openModal('🔄',
+                            state.lang === 'bn' ? 'স্কোর সিঙ্ক হয়েছে' : 'Board Synced',
+                            state.lang === 'bn' ? 'অন্য ডিভাইস বা অ্যাডমিন থেকে ইতিমধ্যে নতুন স্কোর যোগ হয়েছে। সর্বশেষ স্কোর লোড করা হলো।' : 'Another device updated the score first. Loaded the latest scoreboard.',
+                            [{ text: i18n[state.lang].ok }]);
+                        return;
+                    }
+
+                    if (shouldPush && data.game_data) {
+                        const savedPin = state.active.pin || data.game_data.pin;
+                        state.active.rev = data.game_data.rev || state.active.rev || 1;
+                        state.active.serverRev = state.active.rev;
+                        if (savedPin) state.active.pin = savedPin;
+                        state.dirty = false;
+                        state.syncedOnce = true;
+                        saveState();
+                    } else if (!shouldPush && data.game_data) {
+                        // Live poll for BOTH Editors and Viewers!
+                        const savedPin = state.active.pin;
+                        const incoming = data.game_data;
+                        if (data.access === 'edit' && savedPin) {
+                            incoming.pin = savedPin;
+                        }
+                        if (data.access && !(state.matchAccess === 'edit' && savedPin && data.access === 'edit')) {
+                            state.matchAccess = data.access;
+                        }
+
+                        const prevFp = gameFingerprint(state.active);
+                        const nextFp = gameFingerprint(incoming);
+                        const prevRounds = state.active.players[0] ? state.active.players[0].history.length : 0;
+                        const nextRounds = incoming.players[0] ? incoming.players[0].history.length : 0;
+                        const wasFinished = state.active.status === 'finished';
+
+                        state.syncedOnce = true;
+
+                        if (prevFp !== nextFp) {
+                            incoming.serverRev = incoming.rev || 0;
+                            state.active = incoming;
+                            saveState();
+                            // Preserve typed numbers ONLY if round count stayed the same
+                            renderGame(nextRounds !== prevRounds);
+
+                            if (nextRounds > prevRounds && state.autoAnn && incoming.status !== 'finished') {
+                                announceScores();
+                            }
+
+                            if (!wasFinished && incoming.status === 'finished') {
+                                const w = getMatchWinner(incoming);
+                                if (w) {
+                                    haptic('win');
+                                    recordFinishedMatchOnce(incoming, w);
+                                    saveState();
+                                    announceScores();
+                                    openModal('🏆', esc(w.name) + ' Won!', w.total + ' Points!', [{
+                                        text: i18n[state.lang].ok,
+                                        cb: () => { state.active = null; state.dirty = false; saveState(); showView('dashboard'); }
+                                    }]);
+                                }
+                            }
+                        } else {
+                            state.active.serverRev = incoming.rev || 0;
+                        }
+                    }
+                } else {
+                    indicator.style.background = '#ef4444';
                 }
-            } catch(e) { indicator.style.background = '#ef4444'; if(force) state.syncQueue.push(JSON.parse(JSON.stringify(g))); }
+            } catch (e) {
+                indicator.style.background = '#ef4444';
+            } finally {
+                isSyncing = false;
+                if (pendingPush && state.active) {
+                    pendingPush = false;
+                    syncToServer(true);
+                }
+            }
         }
 
-        function renderGame() {
-            const g = state.active; if(!g) return;
+        function renderGame(clearInputs = true) {
+            const g = state.active;
+            if (!g) return;
             const isBN = state.lang === 'bn';
-            const sorted = [...g.players].sort((a,b) => b.total - a.total);
-            
-            document.getElementById('match-info-display').innerText = `ID: ${g.matchId} | PIN: ${state.matchAccess === 'edit' ? g.pin : '****'}`;
+            const sorted = [...g.players].sort((a, b) => b.total - a.total);
+
+            // Preserve typed draft inputs if we're not clearing for a new round
+            const draftValues = {};
+            let focusedId = document.activeElement ? document.activeElement.id : null;
+            if (!clearInputs) {
+                g.players.forEach(p => {
+                    const el = document.getElementById(`in-${p.id}`);
+                    if (el && el.value !== '') draftValues[p.id] = el.value;
+                });
+            }
+
+            document.getElementById('match-info-display').innerText = `ID: ${g.matchId} | PIN: ${state.matchAccess === 'edit' && g.pin ? g.pin : '****'}`;
             const badge = document.getElementById('access-badge');
             badge.innerText = i18n[state.lang][state.matchAccess + 'Mode'];
             badge.className = 'badge-mode mode-' + state.matchAccess;
@@ -352,56 +704,256 @@
 
             document.getElementById('game-board').innerHTML = sorted.map(p => `
                 <div class="player-chip p${p.id}">
-                    <div class="player-name-small"><img class="avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=${p.name}">${p.name}</div>
+                    <div class="player-name-small"><img class="avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(p.name)}">${esc(p.name)}</div>
                     <div class="score-val">${isBN ? toBN(p.total) : p.total}</div>
-                    <div class="prob-badge">${i18n[state.lang].winProb}: ${isBN ? toBN(calcProb(p,g)) : calcProb(p,g)}%</div>
+                    <div class="prob-badge">${i18n[state.lang].winProb}: ${isBN ? toBN(calcProb(p, g)) : calcProb(p, g)}%</div>
                 </div>`).join('');
 
             document.getElementById('score-inputs').innerHTML = g.players.map(p => `
-                <div class="score-row"><div class="input-group"><label>${p.name}</label><input type="text" id="in-${p.id}" oninput="this.value=toEN(this.value); sumCheck();" inputmode="numeric" placeholder="0"></div><button class="bolt-btn" onclick="fillRem(${p.id})">⚡</button></div>`).join('');
-            
-            let table = `<thead><tr><th>R</th>${g.players.map(p => `<th>${p.name.substring(0,3)}</th>`).join('')}</tr></thead><tbody>`;
-            for(let i = g.players[0].history.length - 1; i >= 0; i--) {
-                table += `<tr><td>${isBN?toBN(i+1):i+1}</td>${g.players.map(p => `<td>${isBN?toBN(p.history[i]):p.history[i]}</td>`).join('')}</tr>`;
+                <div class="score-row"><div class="input-group"><label>${esc(p.name)}</label><input type="text" id="in-${p.id}" value="${esc(draftValues[p.id] || '')}" oninput="this.value=toEN(this.value); sumCheck();" inputmode="numeric" placeholder="0"></div><button type="button" class="bolt-btn" onclick="fillRem(${p.id})">⚡</button></div>`).join('');
+
+            if (!clearInputs && focusedId) {
+                const el = document.getElementById(focusedId);
+                if (el) el.focus();
+            }
+            sumCheck();
+
+            let table = `<thead><tr><th>R</th>${g.players.map(p => `<th>${esc(Array.from(p.name).slice(0, 4).join(''))}</th>`).join('')}</tr></thead><tbody>`;
+            for (let i = g.players[0].history.length - 1; i >= 0; i--) {
+                table += `<tr><td>${isBN ? toBN(i + 1) : i + 1}</td>${g.players.map(p => `<td>${isBN ? toBN(p.history[i]) : p.history[i]}</td>`).join('')}</tr>`;
             }
             document.getElementById('round-log').innerHTML = table + '</tbody>';
             updateChart();
+            updateCustomPreview();
         }
 
         function fillRem(id) {
-            const g = state.active; let cur = 0;
-            g.players.forEach(p => { if(p.id!==id) cur += (parseInt(document.getElementById(`in-${p.id}`).value)||0); });
-            document.getElementById(`in-${id}`).value = Math.max(0, g.roundSum - cur); sumCheck();
+            const g = state.active;
+            if (!g) return;
+            let cur = 0;
+            g.players.forEach(p => { if (p.id !== id) cur += (parseInt(document.getElementById(`in-${p.id}`).value, 10) || 0); });
+            document.getElementById(`in-${id}`).value = Math.max(0, g.roundSum - cur);
+            sumCheck();
         }
 
         function strictSave() {
-            const g = state.active; const scores = g.players.map(p => parseInt(document.getElementById(`in-${p.id}`).value) || 0);
-            const sum = scores.reduce((a,b)=>a+b,0);
-            if(sum !== g.roundSum) {
-                openModal('❌', i18n[state.lang].errTitle, i18n[state.lang].errDesc.replace('{s}', sum).replace('{r}', g.roundSum), [{text: i18n[state.lang].ok}]);
+            const g = state.active;
+            if (!g || state.matchAccess !== 'edit') return;
+            const scores = g.players.map(p => parseInt(document.getElementById(`in-${p.id}`).value, 10) || 0);
+            const sum = scores.reduce((a, b) => a + b, 0);
+            if (sum !== g.roundSum) {
+                openModal('❌', i18n[state.lang].errTitle, i18n[state.lang].errDesc.replace('{s}', sum).replace('{r}', g.roundSum), [{ text: i18n[state.lang].ok }]);
                 return;
             }
-            g.players.forEach((p, i) => { p.history.push(scores[i]); p.total += scores[i]; p.last = scores[i]; });
-            saveState(); renderGame(); syncToServer(true);
-            if(state.autoAnn) announceScores();
 
-            const winner = g.players.find(p => p.total >= g.target);
-            if(winner) {
-                haptic('win'); announceScores();
-                state.history.push({ winner: winner.name, total: winner.total, date: Date.now(), players: g.players.map(p=>({name:p.name, total:p.total, history: p.history})) });
-                state.stats[winner.name] = (state.stats[winner.name] || 0) + 1;
-                openModal('🏆', winner.name + ' Won!', winner.total + ' Points!', [{text: i18n[state.lang].ok, cb: () => { state.active = null; saveState(); showView('dashboard'); }}]);
-                state.active.status = 'finished'; syncToServer(true);
+            g.players.forEach((p, i) => {
+                p.history.push(scores[i]);
+                p.total += scores[i];
+                p.last = scores[i];
+            });
+            g.rev = (g.rev || 0) + 1;
+
+            const winner = getMatchWinner(g);
+            if (winner) {
+                g.status = 'finished';
+                recordFinishedMatchOnce(g, winner);
+            }
+
+            state.dirty = true;
+            saveState();
+            renderGame(true);
+            syncToServer(true);
+
+            if (winner) {
+                haptic('win');
+                announceScores();
+                openModal('🏆', esc(winner.name) + ' Won!', winner.total + ' Points!', [{
+                    text: i18n[state.lang].ok,
+                    cb: () => { state.active = null; state.dirty = false; saveState(); showView('dashboard'); }
+                }]);
+            } else if (state.autoAnn) {
+                announceScores();
             }
         }
 
-        function announceScores() {
-            if (!('speechSynthesis' in window)) return;
-            const g = state.active; if (!g) return;
+        // === Custom Speech Template Formatter & Preview ===
+        function buildCustomSpeech(templateStr, gameObj) {
+            const raw = (templateStr || '').trim() || (state.lang === 'bn' ? CUSTOM_PRESETS.bn_fun : '{p1} is leading with {s1} points!');
+            // Support multiple random variations separated by ||
+            const parts = raw.split('||').map(s => s.trim()).filter(Boolean);
+            const chosen = parts.length ? parts[Math.floor(Math.random() * parts.length)] : raw;
+
+            const useBN = hasBangla(chosen) || (state.lang === 'bn' && !/[a-zA-Z]{3,}/.test(chosen.replace(/\{[a-zA-Z0-9_]+\}/g, '')));
+            const fmtNum = (n) => useBN ? toBN(n) : String(n);
+
+            const sorted = [...gameObj.players].sort((a, b) => b.total - a.total);
+            const leader = sorted[0] || { name: 'P1', total: 0 };
+            const second = sorted[1] || leader;
+            const last = sorted[sorted.length - 1] || leader;
+            const roundNum = (gameObj.players[0] && Array.isArray(gameObj.players[0].history)) ? gameObj.players[0].history.length : 0;
+            const diff = Math.max(0, leader.total - second.total);
+            const need = Math.max(0, (gameObj.target || 1000) - leader.total);
+            const allSummary = sorted.map(p => `${p.name} ${fmtNum(p.total)}`).join(', ');
+
+            const map = {
+                p1: sorted[0] ? sorted[0].name : '',
+                s1: sorted[0] ? fmtNum(sorted[0].total) : fmtNum(0),
+                p2: sorted[1] ? sorted[1].name : '',
+                s2: sorted[1] ? fmtNum(sorted[1].total) : fmtNum(0),
+                p3: sorted[2] ? sorted[2].name : '',
+                s3: sorted[2] ? fmtNum(sorted[2].total) : fmtNum(0),
+                p4: sorted[3] ? sorted[3].name : '',
+                s4: sorted[3] ? fmtNum(sorted[3].total) : fmtNum(0),
+                leader: leader.name,
+                leader_score: fmtNum(leader.total),
+                last: last.name,
+                sl: fmtNum(last.total),
+                last_score: fmtNum(last.total),
+                diff: fmtNum(diff),
+                need: fmtNum(need),
+                round: fmtNum(roundNum),
+                target: fmtNum(gameObj.target || 1000),
+                all: allSummary
+            };
+
+            return chosen.replace(/\{([a-zA-Z0-9_]+)\}/g, (match, key) => {
+                const k = key.toLowerCase();
+                return Object.prototype.hasOwnProperty.call(map, k) ? map[k] : match;
+            });
+        }
+
+        function getSampleGameForPreview() {
+            if (state.active && Array.isArray(state.active.players) && state.active.players.length) {
+                return state.active;
+            }
+            const tplHasBN = hasBangla(state.customSpeechTemplate) || state.lang === 'bn';
+            return {
+                target: 1000,
+                roundSum: 360,
+                players: tplHasBN ? [
+                    { id: 0, name: 'কাজল ভাই', total: 650, history: [180, 200, 270] },
+                    { id: 1, name: 'তানভীর', total: 480, history: [90, 160, 230] },
+                    { id: 2, name: 'মুরাদ', total: 310, history: [90, 0, 220] },
+                    { id: 3, name: 'রাতুল', total: 140, history: [0, 0, 140] }
+                ] : [
+                    { id: 0, name: 'Kajol', total: 650, history: [180, 200, 270] },
+                    { id: 1, name: 'Tanvir', total: 480, history: [90, 160, 230] },
+                    { id: 2, name: 'Murad', total: 310, history: [90, 0, 220] },
+                    { id: 3, name: 'Ratul', total: 140, history: [0, 0, 140] }
+                ]
+            };
+        }
+
+        function updateCustomPreview() {
+            const box = document.getElementById('custom-speech-preview');
+            if (!box) return;
+            box.textContent = buildCustomSpeech(state.customSpeechTemplate, getSampleGameForPreview());
+        }
+
+        function insertCustomTag(tag) {
+            const ta = document.getElementById('custom-speech-temp');
+            if (!ta) return;
+            const start = typeof ta.selectionStart === 'number' ? ta.selectionStart : ta.value.length;
+            const end = typeof ta.selectionEnd === 'number' ? ta.selectionEnd : ta.value.length;
+            ta.value = ta.value.slice(0, start) + tag + ta.value.slice(end);
+            ta.focus();
+            const pos = start + tag.length;
+            ta.setSelectionRange(pos, pos);
+            upCustomTemp();
+        }
+
+        function applyCustomPreset(key) {
+            if (!CUSTOM_PRESETS[key]) return;
+            const ta = document.getElementById('custom-speech-temp');
+            ta.value = CUSTOM_PRESETS[key];
+            upCustomTemp();
+        }
+
+        function showSpeechToast(text) {
+            const el = document.getElementById('speech-toast');
+            if (!el) return;
+            el.textContent = '🔊 ' + text;
+            el.style.display = 'block';
+            clearTimeout(speechToastTimer);
+            speechToastTimer = setTimeout(() => { el.style.display = 'none'; }, 4000);
+        }
+
+        function speakUtterance(text) {
+            if (!text || !text.trim()) return;
+            if (state.charEnabled) {
+                mascotSay(text);
+            } else {
+                showSpeechToast(text);
+            }
+
+            if (!('speechSynthesis' in window)) {
+                showSpeechToast((state.lang === 'bn' ? 'ব্রাউজারে ভয়েস সাপোর্ট নেই: ' : 'Voice unsupported: ') + text);
+                return;
+            }
+
+            refreshVoices();
             window.speechSynthesis.cancel();
+
+            // Auto-detect Bengali script so Bangla custom templates speak in Bangla even if UI is English!
+            const speakBN = hasBangla(text);
+            const ut = new SpeechSynthesisUtterance(text);
+
+            if (availableVoices.length > 0) {
+                let matched = null;
+                if (speakBN) {
+                    matched = availableVoices.find(v => /^bn[-_]BD/i.test(v.lang)) ||
+                              availableVoices.find(v => /^bn[-_]IN/i.test(v.lang)) ||
+                              availableVoices.find(v => /^bn/i.test(v.lang) || /bengali|bangla|বাংলা/i.test(v.name));
+                } else {
+                    matched = availableVoices.find(v => /^en[-_]US/i.test(v.lang)) ||
+                              availableVoices.find(v => /^en/i.test(v.lang));
+                }
+                if (matched) {
+                    ut.voice = matched;
+                    ut.lang = matched.lang;
+                } else {
+                    ut.lang = speakBN ? 'bn-BD' : 'en-US';
+                }
+            } else {
+                ut.lang = speakBN ? 'bn-BD' : 'en-US';
+            }
+
+            ut.rate = 0.95;
+            ut.onstart = () => {
+                document.getElementById('mascot-body').classList.add('is-speaking');
+                if (state.charEnabled) mascotSay(text);
+            };
+            ut.onend = () => {
+                document.getElementById('mascot-body').classList.remove('is-speaking');
+                setTimeout(() => { document.getElementById('mascot-bubble').style.display = 'none'; }, 2500);
+            };
+            ut.onerror = () => {
+                document.getElementById('mascot-body').classList.remove('is-speaking');
+            };
+
+            // Keep global ref so mobile Chrome GC doesn't drop the utterance mid-speech
+            window._hazUtterance = ut;
+            setTimeout(() => {
+                try { window.speechSynthesis.resume(); } catch (e) {}
+                window.speechSynthesis.speak(ut);
+            }, 60);
+        }
+
+        function testCustomSpeech() {
+            haptic('click');
+            const sample = getSampleGameForPreview();
+            const text = buildCustomSpeech(state.customSpeechTemplate, sample);
+            showSpeechToast(text);
+            speakUtterance(text);
+        }
+
+        function announceScores() {
+            const g = state.active;
+            if (!g) return;
             const isBN = state.lang === 'bn'; 
-            const sorted = [...g.players].sort((a,b) => b.total - a.total);
-            const leader = sorted[0]; const last = sorted[sorted.length - 1];
+            const sorted = [...g.players].sort((a, b) => b.total - a.total);
+            const leader = sorted[0];
+            const last = sorted[sorted.length - 1];
             let text = "";
 
             const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
@@ -411,62 +963,73 @@
                     pick([`অভিনন্দন! ${leader.name} ${toBN(leader.total)} পয়েন্ট নিয়ে জিতে গেছে!`, `খেলা শেষ! ${leader.name} সবাইকে হারিয়ে দিলো।`, `চমৎকার খেলেছেন ${leader.name}, আপনিই বিজয়ী!`]) :
                     pick([`Congratulations! ${leader.name} won with ${leader.total} points!`, `Game over! ${leader.name} is the champion.`, `Well played ${leader.name}, you are the winner!`]);
                 
-                let summary = isBN ? "। ফাইনাল স্কোর হলো: " : ". Final scores are: ";
+                let summary = isBN ? " ফাইনাল স্কোর হলো: " : " Final scores are: ";
                 sorted.forEach((p, idx) => {
-                    summary += `${p.name} ${isBN?toBN(p.total):p.total}${idx === sorted.length - 1 ? "।" : ", "}`;
+                    summary += `${p.name} ${isBN ? toBN(p.total) : p.total}${idx === sorted.length - 1 ? (isBN ? "।" : ".") : ", "}`;
                 });
                 text = winMsg + summary;
             } else {
                 const mode = state.speechMode || 'standard';
                 
-                if (mode === 'fast') {
-                    sorted.forEach(p => text += `${p.name}: ${isBN?toBN(p.total):p.total}. `);
+                if (mode === 'custom') {
+                    text = buildCustomSpeech(state.customSpeechTemplate, g);
                 } 
-                else if (mode === 'slang' && isBN) {
-                    const intros = [
-                        `${leader.name} তো পুরাই কোপাইতাছে ${toBN(leader.total)} পয়েন্ট নিয়া! `,
-                        `${leader.name} এর দাপটে বাকিরা তো কুপোকাত, পয়েন্ট হইলো ${toBN(leader.total)}। `,
-                        `আরেহ! ${leader.name} তো কারো ধার ধারতেছে না, ${toBN(leader.total)} নিয়া সবার আগে। `,
-                        `বস ইজ অলওয়েজ বস! ${leader.name} এখন ${toBN(leader.total)} এ বইসা হাসতাছে। `,
-                        `${leader.name} মনে হয় আজকা বিরিয়ানি খাইয়া নামছে, ${toBN(leader.total)} নিয়া উড়তাছে! `,
-                        `সবাই কি ${leader.name} এর খেলা দেখতাছেন? ${toBN(leader.total)}? উফ! আগুন! `,
-                        `${leader.name} একাই তো মাঠ গরম কইরা ফেললো, পয়েন্ট তো মাশাল্লাহ ${toBN(leader.total)}। `,
-                        `এই খেলা কি শুধু ${leader.name} একাই খেলতাছে? ${toBN(leader.total)} নিয়া উনিই তো রাজা! `,
-                        `${leader.name} এর পয়েন্ট দেইখা তো আমারই মাথা ঘুরতাছে, ${toBN(leader.total)}! `,
-                        `উড়া ধুরা খেলতাছে ${leader.name}, ${toBN(leader.total)} পয়েন্টের বন্যায় ভাসায় দিল! `
-                    ];
-                    
-                    let midText = "";
-                    if (sorted.length > 2) {
-                        const midPlayers = sorted.slice(1, -1);
-                        const mids = [
-                            `মাঝখানে ${midPlayers.map(p => p.name + ' (' + toBN(p.total) + ')').join(' আর ')} এর অবস্থা তো পুরাই ল্যাজেগোবরে। `,
-                            `${midPlayers.map(p => p.name + ' (' + toBN(p.total) + ')').join(' আর ')} মনে হয় ঘুমাইতাছে। `,
-                            `বাকিদের অবস্থা দেখেন, ${midPlayers.map(p => p.name + ' এর মাত্র ' + toBN(p.total)).join(' আর ')}। `,
-                            `${midPlayers.map(p => p.name).join(' আর ')} কি আজকা দান খয়রাত করতে নামছেন? স্কোর তো মাত্র ${midPlayers.map(p => toBN(p.total)).join(' আর ')}! `,
-                            `${midPlayers.map(p => p.name + ' মিঞা আপনার ' + toBN(p.total)).join(' আর ')} নিয়া আর কতক্ষণ লটরপটর করবেন? `,
-                            `আপনারা কি ${leader.name} কে ${toBN(leader.total)} পয়েন্টে জিতাই দেওয়ার কন্টাক্ট নিছেন? `,
-                            `মাঝখানের পাবলিকদের কোনো হুশ নাই, ${midPlayers.map(p => p.name + ' এর ' + toBN(p.total)).join(' আর ')} নিয়া বইসা আছেন! `,
-                            `${midPlayers.map(p => p.name + ' এর ' + toBN(p.total)).join(' আর ')}, ছিঃ ছিঃ! `,
-                            `${midPlayers.map(p => p.name + ' এর ' + toBN(p.total)).join(' আর ')}, আপনাদের থাইকা তো আমার ম্যাসকটই ভালো খেলে! `,
-                            `মাঝখানের গুলার কি হাত পা চলতাছে না? পয়েন্ট তো ${midPlayers.map(p => toBN(p.total)).join(' আর ')} তেই পইড়া আছে! `
+                else if (mode === 'fast') {
+                    sorted.forEach(p => { text += `${p.name}: ${isBN ? toBN(p.total) : p.total}. `; });
+                } 
+                else if (mode === 'slang') {
+                    if (isBN) {
+                        const intros = [
+                            `${leader.name} তো পুরাই কোপাইতাছে ${toBN(leader.total)} পয়েন্ট নিয়া! `,
+                            `${leader.name} এর দাপটে বাকিরা তো কুপোকাত, পয়েন্ট হইলো ${toBN(leader.total)}। `,
+                            `আরেহ! ${leader.name} তো কারো ধার ধারতেছে না, ${toBN(leader.total)} নিয়া সবার আগে। `,
+                            `বস ইজ অলওয়েজ বস! ${leader.name} এখন ${toBN(leader.total)} এ বইসা হাসতাছে। `,
+                            `${leader.name} মনে হয় আজকা বিরিয়ানি খাইয়া নামছে, ${toBN(leader.total)} নিয়া উড়তাছে! `,
+                            `সবাই কি ${leader.name} এর খেলা দেখতাছেন? ${toBN(leader.total)}? উফ! আগুন! `,
+                            `${leader.name} একাই তো মাঠ গরম কইরা ফেললো, পয়েন্ট তো মাশাল্লাহ ${toBN(leader.total)}। `,
+                            `এই খেলা কি শুধু ${leader.name} একাই খেলতাছে? ${toBN(leader.total)} নিয়া উনিই তো রাজা! `,
+                            `${leader.name} এর পয়েন্ট দেইখা তো আমারই মাথা ঘুরতাছে, ${toBN(leader.total)}! `,
+                            `উড়া ধুরা খেলতাছে ${leader.name}, ${toBN(leader.total)} পয়েন্টের বন্যায় ভাসায় দিল! `
                         ];
-                        midText = pick(mids);
-                    }
+                        
+                        let midText = "";
+                        if (sorted.length > 2) {
+                            const midPlayers = sorted.slice(1, -1);
+                            const mids = [
+                                `মাঝখানে ${midPlayers.map(p => p.name + ' (' + toBN(p.total) + ')').join(' আর ')} এর অবস্থা তো পুরাই ল্যাজেগোবরে। `,
+                                `${midPlayers.map(p => p.name + ' (' + toBN(p.total) + ')').join(' আর ')} মনে হয় ঘুমাইতাছে। `,
+                                `বাকিদের অবস্থা দেখেন, ${midPlayers.map(p => p.name + ' এর মাত্র ' + toBN(p.total)).join(' আর ')}। `,
+                                `${midPlayers.map(p => p.name).join(' আর ')} কি আজকা দান খয়রাত করতে নামছেন? স্কোর তো মাত্র ${midPlayers.map(p => toBN(p.total)).join(' আর ')}! `,
+                                `${midPlayers.map(p => p.name + ' মিঞা আপনার ' + toBN(p.total)).join(' আর ')} নিয়া আর কতক্ষণ লটরপটর করবেন? `,
+                                `আপনারা কি ${leader.name} কে ${toBN(leader.total)} পয়েন্টে জিতাই দেওয়ার কন্টাক্ট নিছেন? `,
+                                `মাঝখানের পাবলিকদের কোনো হুশ নাই, ${midPlayers.map(p => p.name + ' এর ' + toBN(p.total)).join(' আর ')} নিয়া বইসা আছেন! `,
+                                `${midPlayers.map(p => p.name + ' এর ' + toBN(p.total)).join(' আর ')}, ছিঃ ছিঃ! `,
+                                `${midPlayers.map(p => p.name + ' এর ' + toBN(p.total)).join(' আর ')}, আপনাদের থাইকা তো আমার ম্যাসকটই ভালো খেলে! `,
+                                `মাঝখানের গুলার কি হাত পা চলতাছে না? পয়েন্ট তো ${midPlayers.map(p => toBN(p.total)).join(' আর ')} তেই পইড়া আছে! `
+                            ];
+                            midText = pick(mids);
+                        }
 
-                    const lasts = [
-                        `${last.name} ভাই, আপনি কি খেলা দেখতাছেন নাকি অন্য দুনিয়ায়? আপনার তো মাত্র ${toBN(last.total)}! `,
-                        `আর ${last.name} এর কথা কি বলবো? ${toBN(last.total)} নিয়া উনি তো সবার পিছে। `,
-                        `${last.name} ভাই, একটু চেষ্টা করেন, ${toBN(last.total)} দিয়ে কি আর হবে? `,
-                        `${last.name} ভাই, আপনার জন্য এক বালতি সমবেদনা! মাত্র ${toBN(last.total)}? `,
-                        `এই যে ${last.name}, আপনি কি হারার রেকর্ড করতে নামছেন নাকি? পয়েন্ট তো মাত্র ${toBN(last.total)}! `,
-                        `উনাকে কেউ চা কফি খাওয়ান, ${last.name} তো ${toBN(last.total)} পয়েন্ট নিয়ে মাঠেই ঘুমাই গেছে! `,
-                        `পরের বার থেকে ${last.name} ভাইre দর্শক হিসেবে রাইখেন, ${toBN(last.total)} দিয়ে কি আর হয়! `,
-                        `শুনেন ${last.name}, পয়েন্ট তো মাগনা পাওয়া যায় না, ${toBN(last.total)} তে পইড়া থাইকেন না! `,
-                        `${last.name} এর ${toBN(last.total)} পয়েন্ট দেইখা তো আমার চোখে পানি চইলা আইলো! `,
-                        `ভাই ${last.name}, আপনে কি গুটি গুনা ভুল করতাছেন নাকি? ${toBN(last.total)} তে পইড়া আছেন কেন? `
-                    ];
-                    text = pick(intros) + midText + pick(lasts);
+                        const lasts = [
+                            `${last.name} ভাই, আপনি কি খেলা দেখতাছেন নাকি অন্য দুনিয়ায়? আপনার তো মাত্র ${toBN(last.total)}! `,
+                            `আর ${last.name} এর কথা কি বলবো? ${toBN(last.total)} নিয়া উনি তো সবার পিছে। `,
+                            `${last.name} ভাই, একটু চেষ্টা করেন, ${toBN(last.total)} দিয়ে কি আর হবে? `,
+                            `${last.name} ভাই, আপনার জন্য এক বালতি সমবেদনা! মাত্র ${toBN(last.total)}? `,
+                            `এই যে ${last.name}, আপনি কি হারার রেকর্ড করতে নামছেন নাকি? পয়েন্ট তো মাত্র ${toBN(last.total)}! `,
+                            `উনাকে কেউ চা কফি খাওয়ান, ${last.name} তো ${toBN(last.total)} পয়েন্ট নিয়ে মাঠেই ঘুমাই গেছে! `,
+                            `পরের বার থেকে ${last.name} ভাইরে দর্শক হিসেবে রাইখেন, ${toBN(last.total)} দিয়ে কি আর হয়! `,
+                            `শুনেন ${last.name}, পয়েন্ট তো মাগনা পাওয়া যায় না, ${toBN(last.total)} তে পইড়া থাইকেন না! `,
+                            `${last.name} এর ${toBN(last.total)} পয়েন্ট দেইখা তো আমার চোখে পানি চইলা আইলো! `,
+                            `ভাই ${last.name}, আপনে কি গুটি গুনা ভুল করতাছেন নাকি? ${toBN(last.total)} তে পইড়া আছেন কেন? `
+                        ];
+                        text = pick(intros) + midText + pick(lasts);
+                    } else {
+                        text = pick([
+                            `${leader.name} is absolutely dominating with ${leader.total} points, while ${last.name} is snoozing at ${last.total}!`,
+                            `Somebody stop ${leader.name} at ${leader.total}! ${last.name}, wake up from ${last.total} points!`,
+                            `${leader.name} is cruising at ${leader.total}. Meanwhile ${last.name} is stuck at ${last.total}!`
+                        ]);
+                    }
                 } 
                 else if (mode === 'friendly') {
                     const intros = isBN ? 
@@ -474,127 +1037,398 @@
                         [`Great game so far. ${leader.name} is leading. `, `${leader.name} is currently at the top of the board. `, `Everyone is playing well, but ${leader.name} is in the lead. `];
                     
                     text = pick(intros);
-                    sorted.forEach((p, idx) => {
-                        if(isBN) text += `${p.name} এর সংগ্রহ ${toBN(p.total)} পয়েন্ট। `;
+                    sorted.forEach(p => {
+                        if (isBN) text += `${p.name} এর সংগ্রহ ${toBN(p.total)} পয়েন্ট। `;
                         else text += `${p.name} has collected ${p.total} points. `;
                     });
                 } 
-                else if (mode === 'custom') {
-                    text = state.customSpeechTemplate.replace('{p1}', leader.name).replace('{s1}', leader.total);
-                } 
                 else {
-                    // Standard Mode - Dynamic
                     const intros = isBN ? 
                         [`সবাই একটু খেয়াল করুন, বর্তমান স্কোর হলো: `, `স্কোরবোর্ডের আপডেট দিচ্ছি: `, `চলতি ম্যাচের স্কোরকার্ড: `, `চলুন স্কোরগুলো একবার দেখে নিই: `] :
                         [`Attention everyone, here is the score: `, `Updating the leaderboard: `, `Current match stats: `, `Let's look at the scores: `];
                     
                     text = pick(intros);
                     sorted.forEach((p, idx) => {
-                        text += `${p.name} ${isBN?toBN(p.total):p.total}${idx === sorted.length - 1 ? "।" : ", "}`;
+                        text += `${p.name} ${isBN ? toBN(p.total) : p.total}${idx === sorted.length - 1 ? (isBN ? "।" : ".") : ", "}`;
                     });
                 }
             }
 
-            const ut = new SpeechSynthesisUtterance(text);
-            ut.lang = isBN ? 'bn-BD' : 'en-US'; ut.rate = 0.95;
-            ut.onstart = () => { document.getElementById('mascot-body').classList.add('is-speaking'); mascotSay(text); };
-            ut.onend = () => { document.getElementById('mascot-body').classList.remove('is-speaking'); setTimeout(()=>document.getElementById('mascot-bubble').style.display='none', 2500); };
-            window.speechSynthesis.speak(ut);
+            speakUtterance(text);
         }
 
         function mascotSay(t) { const b = document.getElementById('mascot-bubble'); b.innerText = t; b.style.display = 'block'; }
         function mascotClick() { 
             haptic('click'); 
-            if(state.charResponseMode === 'fun' && state.lang === 'bn') {
+            if (state.speechMode === 'custom' && state.active) {
+                announceScores();
+            } else if (state.charResponseMode === 'fun' && state.lang === 'bn') {
                 const msgs = ["কি খবর মামা? খেলা কেমন চলে?", "কোপান মামা!", "সবাই কি ঘুমাইতাছেন?", "হিসাব ঠিক রাইখেন!"];
-                mascotSay(msgs[Math.floor(Math.random()*msgs.length)]);
-            } else announceScores();
+                mascotSay(msgs[Math.floor(Math.random() * msgs.length)]);
+                setTimeout(() => { document.getElementById('mascot-bubble').style.display = 'none'; }, 2500);
+            } else {
+                announceScores();
+            }
         }
         
         function initChart() {
-            if(!state.showChart) { document.getElementById('match-chart-container').style.display='none'; return; }
-            document.getElementById('match-chart-container').style.display='block';
+            if (!state.showChart || !state.active) {
+                document.getElementById('match-chart-container').style.display = 'none';
+                return;
+            }
+            document.getElementById('match-chart-container').style.display = 'block';
             const ctx = document.getElementById('matchChart').getContext('2d');
-            if(matchChart) matchChart.destroy();
+            if (matchChart) matchChart.destroy();
             matchChart = new Chart(ctx, {
                 type: 'line',
-                data: { labels: ['Start'], datasets: state.active.players.map((p,i)=>({ label:p.name, data:[0], borderColor:['#4361ee','#f72585','#f8961e','#7209b7'][i], tension:0.4 })) },
-                options: { responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
+                data: {
+                    labels: ['Start'],
+                    datasets: state.active.players.map((p, i) => ({
+                        label: p.name,
+                        data: [0],
+                        borderColor: ['#4361ee', '#f72585', '#f8961e', '#7209b7'][i],
+                        tension: 0.4
+                    }))
+                },
+                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
             });
             updateChart();
         }
 
         function updateChart() {
-            if(!matchChart || !state.active) return;
-            matchChart.data.labels = ['Start', ...Array.from({length: state.active.players[0].history.length}, (_,i)=>i+1)];
-            state.active.players.forEach((p,i) => { let s=0; matchChart.data.datasets[i].data = [0, ...p.history.map(v=>s+=v)]; });
+            if (!matchChart || !state.active) return;
+            matchChart.data.labels = ['Start', ...Array.from({ length: state.active.players[0].history.length }, (_, i) => i + 1)];
+            state.active.players.forEach((p, i) => {
+                if (matchChart.data.datasets[i]) {
+                    let s = 0;
+                    matchChart.data.datasets[i].label = p.name;
+                    matchChart.data.datasets[i].data = [0, ...p.history.map(v => s += v)];
+                }
+            });
             matchChart.update();
         }
 
         async function joinMatch() {
-            const id = document.getElementById('join-id').value.trim();
-            const pin = document.getElementById('join-pin').value.trim();
-            if(!id) return;
+            const rawId = document.getElementById('join-id').value.trim();
+            const pin = toEN(document.getElementById('join-pin').value.trim());
+            if (!rawId) return;
+            const id = rawId.toUpperCase();
             try {
-                const res = await fetch('./api/sync.php', { method:'POST', body:JSON.stringify({match_id:id, action:'sync', pin:pin||null}) });
+                const res = await fetch('./api/sync.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ match_id: id, action: 'sync', pin: pin || null }),
+                    cache: 'no-store'
+                });
                 const d = await res.json();
-                if(d.game_data) { state.active=d.game_data; state.matchAccess=d.access; saveState(); showView('game'); } else alert("Match not found!");
-            } catch(e) { alert("Network Error!"); }
+                if (d.game_data) {
+                    const g = d.game_data;
+                    g.serverRev = g.rev || 0;
+                    if (d.access === 'edit' && pin) {
+                        g.pin = pin;
+                    }
+                    state.active = g;
+                    state.matchAccess = d.access || 'view';
+                    state.dirty = false;
+                    state.syncedOnce = true;
+                    document.getElementById('join-id').value = '';
+                    document.getElementById('join-pin').value = '';
+                    saveState();
+                    showView('game');
+
+                    if (pin && d.access !== 'edit') {
+                        openModal('🔒',
+                            state.lang === 'bn' ? 'ভুল PIN!' : 'Incorrect PIN',
+                            state.lang === 'bn' ? 'পিনটি মেলেনি, তাই শুধুমাত্র দেখার (Viewer) মোডে খোলা হয়েছে। এডিট করতে উপরে ⚙️ বাটনে চাপ দিয়ে সঠিক PIN দিন।' : 'PIN did not match. Joined in Viewer mode. Tap ⚙️ anytime to enter the Editor PIN.',
+                            [{ text: i18n[state.lang].ok }]);
+                    }
+                } else {
+                    openModal('🔍', state.lang === 'bn' ? 'ম্যাচ পাওয়া যায়নি' : 'Match Not Found',
+                        state.lang === 'bn' ? 'Match ID টি আবার চেক করুন।' : 'Please double-check the Match ID.',
+                        [{ text: i18n[state.lang].ok }]);
+                }
+            } catch (e) {
+                openModal('⚠️', 'Network Error', state.lang === 'bn' ? 'সার্ভারের সাথে সংযোগ করা যাচ্ছে না।' : 'Could not reach server.', [{ text: i18n[state.lang].ok }]);
+            }
         }
 
         function confirmUndo() {
-            if(!state.active || !state.active.players[0].history.length) return;
-            openModal('↩️', i18n[state.lang].undoTitle, i18n[state.lang].undoDesc, [{text: i18n[state.lang].yes, cb:()=>{
-                state.active.players.forEach(p=>{ p.total -= p.history.pop(); p.last=p.history[p.history.length-1]||0; });
-                saveState(); renderGame(); syncToServer(true);
-            }}, {text: i18n[state.lang].no}]);
+            if (!state.active || state.matchAccess !== 'edit' || !state.active.players[0].history.length) return;
+            openModal('↩️', i18n[state.lang].undoTitle, i18n[state.lang].undoDesc, [{
+                text: i18n[state.lang].yes,
+                cb: () => {
+                    state.active.players.forEach(p => {
+                        p.total -= p.history.pop();
+                        p.last = p.history[p.history.length - 1] || 0;
+                    });
+                    state.active.rev = (state.active.rev || 0) + 1;
+                    state.active.status = 'running';
+                    state.dirty = true;
+                    saveState();
+                    renderGame(true);
+                    syncToServer(true);
+                }
+            }, { text: i18n[state.lang].no }]);
         }
 
         function openEditModal() {
-            const g = state.active; if(!g || state.matchAccess!=='edit') return;
+            const g = state.active;
+            if (!g) return;
+
+            // Allow Viewer devices to enter PIN and upgrade to Editor anytime!
+            if (state.matchAccess !== 'edit') {
+                const unlockHtml = `<div style="text-align:left;">
+                    <div class="input-group">
+                        <label>${state.lang === 'bn' ? 'এডিটর PIN দিন' : 'Enter Editor PIN'}</label>
+                        <input type="text" id="unlock-pin-in" inputmode="numeric" placeholder="4-digit PIN">
+                    </div>
+                </div>`;
+                openModal('🔑', state.lang === 'bn' ? 'এডিট মোড চালু করুন' : 'Unlock Editor Mode', unlockHtml, [{
+                    text: i18n[state.lang].ok,
+                    cb: async () => {
+                        const enteredPin = toEN((document.getElementById('unlock-pin-in').value || '').trim());
+                        if (!enteredPin) return;
+                        try {
+                            const res = await fetch('./api/sync.php', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ match_id: g.matchId, action: 'sync', pin: enteredPin }),
+                                cache: 'no-store'
+                            });
+                            const d = await res.json();
+                            if (d.access === 'edit' && d.game_data) {
+                                d.game_data.pin = enteredPin;
+                                d.game_data.serverRev = d.game_data.rev || 0;
+                                state.active = d.game_data;
+                                state.matchAccess = 'edit';
+                                state.dirty = false;
+                                saveState();
+                                renderGame(true);
+                            } else {
+                                openModal('❌', state.lang === 'bn' ? 'ভুল PIN' : 'Wrong PIN',
+                                    state.lang === 'bn' ? 'সঠিক PIN দিয়ে আবার চেষ্টা করুন।' : 'Please check the PIN and try again.',
+                                    [{ text: i18n[state.lang].ok }]);
+                            }
+                        } catch (e) {}
+                    }
+                }, { text: i18n[state.lang].cancel }]);
+                return;
+            }
+
             let html = `<div style="text-align:left; display:grid; gap:10px;">
-                <div class="input-group"><label>Target</label><input type="number" id="ed-tar" value="${g.target}"></div>
-                <div class="input-group"><label>Round Sum</label><input type="number" id="ed-rnd" value="${g.roundSum}"></div>
+                <div class="input-group"><label>Target</label><input type="number" id="ed-tar" value="${esc(g.target)}"></div>
+                <div class="input-group"><label>Round Sum</label><input type="number" id="ed-rnd" value="${esc(g.roundSum)}"></div>
                 <label style="font-size:0.8rem; font-weight:800;">PLAYER NAMES</label>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                    ${g.players.map((p,i)=> `<input type="text" id="ed-n-${i}" value="${p.name}">`).join('')}
+                    ${g.players.map((p, i) => `<input type="text" id="ed-n-${i}" value="${esc(p.name)}">`).join('')}
                 </div>
             </div>`;
-            openModal('⚙️', 'Edit Board', html, [{text: i18n[state.lang].ok, cb:()=>{
-                g.target=parseInt(document.getElementById('ed-tar').value)||g.target;
-                g.roundSum=parseInt(document.getElementById('ed-rnd').value)||g.roundSum;
-                g.players.forEach((p,i)=> p.name=document.getElementById(`ed-n-${i}`).value||p.name);
-                saveState(); renderGame(); syncToServer(true);
-            }}, {text: i18n[state.lang].cancel}]);
+            openModal('⚙️', 'Edit Board', html, [{
+                text: i18n[state.lang].ok,
+                cb: () => {
+                    g.target = parseInt(document.getElementById('ed-tar').value, 10) || g.target;
+                    g.roundSum = parseInt(document.getElementById('ed-rnd').value, 10) || g.roundSum;
+                    g.players.forEach((p, i) => {
+                        const v = document.getElementById(`ed-n-${i}`).value.trim();
+                        if (v) p.name = v;
+                    });
+                    g.rev = (g.rev || 0) + 1;
+                    state.dirty = true;
+                    saveState();
+                    renderGame(false);
+                    syncToServer(true);
+                }
+            }, { text: i18n[state.lang].cancel }]);
         }
 
-        function confirmExit() { openModal('🚪', i18n[state.lang].exitTitle, i18n[state.lang].exitDesc, [{text: i18n[state.lang].yes, cb:()=>{state.active=null; saveState(); showView('dashboard');}}, {text: i18n[state.lang].no}]); }
+        function confirmExit() {
+            openModal('🚪', i18n[state.lang].exitTitle, i18n[state.lang].exitDesc, [{
+                text: i18n[state.lang].yes,
+                cb: () => { state.active = null; state.dirty = false; saveState(); showView('dashboard'); }
+            }, { text: i18n[state.lang].no }]);
+        }
 
         // Dragging & Core
-        let isDrag=false, startX, startY;
-        function startDrag(e) { isDrag=true; const c = e.type==='touchstart'?e.touches[0]:e; const r = document.getElementById('mascot-container').getBoundingClientRect(); startX = c.clientX-r.left; startY = c.clientY-r.top; document.addEventListener('mousemove', drag); document.addEventListener('touchmove', drag, {passive:false}); document.addEventListener('mouseup', endDrag); document.addEventListener('touchend', endDrag); }
-        function drag(e) { if(!isDrag) return; if(e.type==='touchmove') e.preventDefault(); const c = e.type==='touchmove'?e.touches[0]:e; const m = document.getElementById('mascot-container'); m.style.left = (c.clientX-startX)+'px'; m.style.top = (c.clientY-startY)+'px'; m.style.bottom='auto'; m.style.right='auto'; }
-        function endDrag() { isDrag=false; }
-        function startGame() { const c = parseInt(document.getElementById('setup-count').value); const p = []; for(let i=0; i<c; i++) p.push({id:i, name:document.getElementById(`p-name-${i}`).value||`P${i+1}`, total:0, history:[], last:0}); state.active = { matchId: 'HZ-'+Math.floor(1000+Math.random()*9000), pin: Math.floor(1000+Math.random()*9000).toString(), players:p, target:parseInt(document.getElementById('setup-target').value), roundSum:parseInt(document.getElementById('setup-round').value), status:'running' }; state.matchAccess='edit'; saveState(); showView('game'); syncToServer(true); }
-        function showView(v) { document.querySelectorAll('.view').forEach(x=>x.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active')); document.getElementById('view-'+v).classList.add('active'); const n = v==='setup'?'n-game':(v==='dashboard'?'n-dash':'n-sett'); if(document.getElementById(n)) document.getElementById(n).classList.add('active'); if(v==='dashboard') renderDash(); if(v==='game') { renderGame(); initChart(); } }
-        function renderDash() { const w = Object.entries(state.stats).sort((a,b)=>b[1]-a[1]); document.getElementById('stats-list').innerHTML = w.map(([n,v])=>`<div style="padding:12px; background:var(--primary-light); border-radius:15px; text-align:center; min-width:80px;"><div style="font-size:0.6rem; font-weight:800; color:var(--primary);">${v} Wins</div><div style="font-weight:700;">${n}</div></div>`).join('')||'No stats'; document.getElementById('history-list').innerHTML = state.history.slice().reverse().map(h=>`<div class="card" style="display:flex; justify-content:space-between;"><div><div style="font-weight:800; color:var(--primary);">🏆 ${h.winner}</div><div style="font-size:0.65rem;">${new Date(h.date).toLocaleDateString()}</div></div><div style="text-align:right; font-size:0.7rem;">${h.players.map(p=>`<div>${p.name}: ${p.total}</div>`).join('')}</div></div>`).join('')||'No history'; }
-        async function processQueue() { if(!navigator.onLine || !state.syncQueue.length) return; const m=state.syncQueue[0]; try { await fetch('./api/sync.php', {method:'POST', body:JSON.stringify({match_id:m.matchId, action:'push', game_data:m, pin:m.pin})}); state.syncQueue.shift(); saveState(); } catch(e){} }
-        function openModal(i,t,d,b) { document.getElementById('modal-icon').innerText=i; document.getElementById('modal-title').innerText=t; document.getElementById('modal-desc').innerHTML=d; const c=document.getElementById('modal-btns'); c.innerHTML=""; b.forEach(x=>{const e=document.createElement('button'); e.innerText=x.text; e.className='btn-primary'; e.onclick=()=>{document.getElementById('global-modal').style.display='none'; if(x.cb)x.cb();}; c.appendChild(e);}); document.getElementById('global-modal').style.display='flex'; }
-        function togglePlayerInputs() { const c=parseInt(document.getElementById('setup-count').value); const con=document.getElementById('player-inputs'); con.innerHTML=""; for(let i=0; i<c; i++){const inp=document.createElement('input'); inp.type='text'; inp.id=`p-name-${i}`; inp.placeholder=`Player ${i+1}`; con.appendChild(inp);} }
-        function resume() { if(state.active) showView('game'); else showView('setup'); }
-        function upTheme() { state.theme=document.getElementById('theme-sel').value; document.body.setAttribute('data-theme', state.theme); saveState(); }
-        function upLang() { state.lang=document.getElementById('lang-sel').value; document.querySelectorAll('[data-i18n]').forEach(el=>el.innerText=i18n[state.lang][el.getAttribute('data-i18n')]||el.innerText); saveState(); if(state.active) renderGame(); }
-        function upShowChart() { state.showChart=document.getElementById('show-chart-toggle').checked; saveState(); if(state.active) initChart(); }
-        function upAutoAnn() { state.autoAnn=document.getElementById('auto-ann-toggle').checked; saveState(); }
-        function upSpeechMode() { state.speechMode=document.getElementById('speech-mode-sel').value; document.getElementById('custom-speech-area').style.display=state.speechMode==='custom'?'block':'none'; saveState(); }
-        function upCharToggle() { state.charEnabled=document.getElementById('char-toggle').checked; document.getElementById('mascot-container').style.display=state.charEnabled?'flex':'none'; document.getElementById('mascot-settings').style.display=state.charEnabled?'block':'none'; saveState(); }
-        function upCharMode() { state.charResponseMode=document.getElementById('char-mode-sel').value; saveState(); }
-        function upCustomTemp() { state.customSpeechTemplate=document.getElementById('custom-speech-temp').value; saveState(); }
-        function wipe() { if(confirm("Wipe all data?")) { localStorage.clear(); location.reload(); } }
-        function calcProb(p,g) { if(p.total>=g.target) return 100; let m=p.history.length>0?((p.history.slice(-2).reduce((a,b)=>a+b,0)/2)/(g.roundSum*0.4))*30:0; return Math.min(Math.max(Math.round(((p.total/g.target)*70)+m),5), 99); }
-        function sumCheck() { let s=0; state.active.players.forEach(p=>s+=(parseInt(document.getElementById(`in-${p.id}`).value)||0)); const w=document.getElementById('game-warn'); w.innerText=`Total: ${s} / ${state.active.roundSum}`; w.style.color=s===state.active.roundSum?'var(--success)':'var(--danger)'; }
+        let isDrag = false, startX, startY;
+        function startDrag(e) {
+            isDrag = true;
+            const c = e.type === 'touchstart' ? e.touches[0] : e;
+            const r = document.getElementById('mascot-container').getBoundingClientRect();
+            startX = c.clientX - r.left;
+            startY = c.clientY - r.top;
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('touchmove', drag, { passive: false });
+            document.addEventListener('mouseup', endDrag);
+            document.addEventListener('touchend', endDrag);
+        }
+        function drag(e) {
+            if (!isDrag) return;
+            if (e.type === 'touchmove') e.preventDefault();
+            const c = e.type === 'touchmove' ? e.touches[0] : e;
+            const m = document.getElementById('mascot-container');
+            m.style.left = (c.clientX - startX) + 'px';
+            m.style.top = (c.clientY - startY) + 'px';
+            m.style.bottom = 'auto';
+            m.style.right = 'auto';
+        }
+        function endDrag() { isDrag = false; }
 
-        load(); togglePlayerInputs();
+        function startGame() {
+            const c = parseInt(document.getElementById('setup-count').value, 10);
+            const p = [];
+            for (let i = 0; i < c; i++) {
+                const rawName = (document.getElementById(`p-name-${i}`).value || '').trim();
+                p.push({ id: i, name: rawName || `P${i + 1}`, total: 0, history: [], last: 0 });
+            }
+            const now = new Date();
+            state.active = {
+                matchId: 'HZ-' + Math.floor(1000 + Math.random() * 9000),
+                matchName: 'Match ' + now.toLocaleDateString() + ' ' + now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0'),
+                pin: Math.floor(1000 + Math.random() * 9000).toString(),
+                players: p,
+                target: parseInt(document.getElementById('setup-target').value, 10) || 1000,
+                roundSum: parseInt(document.getElementById('setup-round').value, 10) || 360,
+                date: Date.now(),
+                status: 'running',
+                rev: 1,
+                serverRev: 0,
+                device: {
+                    ua: navigator.userAgent,
+                    screen: `${window.screen.width}x${window.screen.height}`,
+                    platform: navigator.platform || ''
+                }
+            };
+            state.matchAccess = 'edit';
+            state.dirty = true;
+            state.syncedOnce = false;
+            saveState();
+            showView('game');
+            syncToServer(true);
+        }
+
+        function showView(v) {
+            document.querySelectorAll('.view').forEach(x => x.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
+            document.getElementById('view-' + v).classList.add('active');
+            const n = (v === 'setup' || v === 'game') ? 'n-game' : (v === 'dashboard' ? 'n-dash' : 'n-sett');
+            if (document.getElementById(n)) document.getElementById(n).classList.add('active');
+            if (v === 'dashboard') renderDash();
+            if (v === 'game') { renderGame(false); initChart(); }
+            if (v === 'settings') updateCustomPreview();
+        }
+
+        function renderDash() {
+            const w = Object.entries(state.stats).sort((a, b) => b[1] - a[1]);
+            document.getElementById('stats-list').innerHTML = w.map(([n, v]) => `
+                <div style="padding:12px; background:var(--primary-light); border-radius:15px; text-align:center; min-width:80px;">
+                    <div style="font-size:0.6rem; font-weight:800; color:var(--primary);">${v} Wins</div>
+                    <div style="font-weight:700;">${esc(n)}</div>
+                </div>`).join('') || 'No stats';
+
+            document.getElementById('history-list').innerHTML = state.history.slice().reverse().map(h => `
+                <div class="card" style="display:flex; justify-content:space-between;">
+                    <div>
+                        <div style="font-weight:800; color:var(--primary);">🏆 ${esc(h.winner)}</div>
+                        <div style="font-size:0.65rem;">${new Date(h.date).toLocaleDateString()}</div>
+                    </div>
+                    <div style="text-align:right; font-size:0.7rem;">
+                        ${h.players.map(p => `<div>${esc(p.name)}: ${p.total}</div>`).join('')}
+                    </div>
+                </div>`).join('') || 'No history';
+        }
+
+        function openModal(i, t, d, b) {
+            document.getElementById('modal-icon').innerText = i;
+            document.getElementById('modal-title').innerText = t;
+            document.getElementById('modal-desc').innerHTML = d;
+            const c = document.getElementById('modal-btns');
+            c.innerHTML = "";
+            b.forEach(x => {
+                const e = document.createElement('button');
+                e.innerText = x.text;
+                e.className = 'btn-primary';
+                e.onclick = () => {
+                    document.getElementById('global-modal').style.display = 'none';
+                    if (x.cb) x.cb();
+                };
+                c.appendChild(e);
+            });
+            document.getElementById('global-modal').style.display = 'flex';
+        }
+
+        function togglePlayerInputs() {
+            const c = parseInt(document.getElementById('setup-count').value, 10);
+            const con = document.getElementById('player-inputs');
+            const existingVals = {};
+            con.querySelectorAll('input').forEach((el, idx) => { existingVals[idx] = el.value; });
+            con.innerHTML = "";
+            for (let i = 0; i < c; i++) {
+                const inp = document.createElement('input');
+                inp.type = 'text';
+                inp.id = `p-name-${i}`;
+                inp.value = existingVals[i] || '';
+                inp.placeholder = i18n[state.lang] ? (i18n[state.lang][`p${i + 1}Placeholder`] || `Player ${i + 1}`) : `Player ${i + 1}`;
+                con.appendChild(inp);
+            }
+        }
+
+        function resume() { if (state.active) showView('game'); else showView('setup'); }
+        function upTheme() { state.theme = document.getElementById('theme-sel').value; document.body.setAttribute('data-theme', state.theme); saveState(); }
+        function upLang() {
+            state.lang = document.getElementById('lang-sel').value;
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (i18n[state.lang] && i18n[state.lang][key]) {
+                    el.innerText = i18n[state.lang][key];
+                }
+            });
+            saveState();
+            togglePlayerInputs();
+            if (state.active) renderGame(false);
+            updateCustomPreview();
+        }
+        function upShowChart() { state.showChart = document.getElementById('show-chart-toggle').checked; saveState(); if (state.active) initChart(); }
+        function upAutoAnn() { state.autoAnn = document.getElementById('auto-ann-toggle').checked; saveState(); }
+        function upSpeechMode() {
+            state.speechMode = document.getElementById('speech-mode-sel').value;
+            document.getElementById('custom-speech-area').style.display = state.speechMode === 'custom' ? 'block' : 'none';
+            saveState();
+            updateCustomPreview();
+        }
+        function upCharToggle() {
+            state.charEnabled = document.getElementById('char-toggle').checked;
+            document.getElementById('mascot-container').style.display = state.charEnabled ? 'flex' : 'none';
+            document.getElementById('mascot-settings').style.display = state.charEnabled ? 'block' : 'none';
+            saveState();
+        }
+        function upCharMode() { state.charResponseMode = document.getElementById('char-mode-sel').value; saveState(); }
+        function upCustomTemp() {
+            state.customSpeechTemplate = document.getElementById('custom-speech-temp').value;
+            saveState();
+            updateCustomPreview();
+        }
+        function wipe() { if (confirm("Wipe all data?")) { localStorage.clear(); location.reload(); } }
+        function calcProb(p, g) {
+            if (p.total >= g.target) return 100;
+            let m = p.history.length > 0 ? ((p.history.slice(-2).reduce((a, b) => a + b, 0) / 2) / (g.roundSum * 0.4)) * 30 : 0;
+            return Math.min(Math.max(Math.round(((p.total / g.target) * 70) + m), 5), 99);
+        }
+        function sumCheck() {
+            if (!state.active) return;
+            let s = 0;
+            state.active.players.forEach(p => {
+                const el = document.getElementById(`in-${p.id}`);
+                if (el) s += (parseInt(el.value, 10) || 0);
+            });
+            const w = document.getElementById('game-warn');
+            if (w) {
+                w.innerText = `Total: ${s} / ${state.active.roundSum}`;
+                w.style.color = s === state.active.roundSum ? 'var(--success)' : 'var(--danger)';
+            }
+        }
+
+        togglePlayerInputs();
+        load();
     </script>
 </body>
 </html>
